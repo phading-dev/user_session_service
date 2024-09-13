@@ -1,0 +1,93 @@
+[{
+  "spannerDatabase": {
+    "name": "UserSessionDatabase",
+    "tables": [{
+      "name": "UserSession",
+      "columns": [{
+        "name": "sessionId",
+        "type": "string"
+      }, {
+        "name": "userId",
+        "type": "string"
+      }, {
+        "name": "accountId",
+        "type": "string"
+      }, {
+        "name": "createdTimestamp",
+        "type": "timestamp",
+        "allowCommitTimestamp": true
+      }, {
+        "name": "renewedTimestamp",
+        "type": "timestamp",
+        "allowCommitTimestamp": true
+      }, {
+        "name": "canPublishShows",
+        "type": "bool",
+        "nullable": true
+      }, {
+        "name": "canConsumeShows",
+        "type": "bool",
+        "nullable": true
+      }],
+      "primaryKeys": [{
+        "column": "sessionId"
+      }]
+    }],
+    "inserts": [{
+      "name": "InsertSession",
+      "table": "UserSession",
+      "setColumns": ["sessionId", "userId", "accountId", "createdTimestamp", "renewedTimestamp", "canPublishShows", "canConsumeShows"]
+    }],
+    "deletes": [{
+      "name": "DeleteSession",
+      "table": "UserSession",
+      "where": {
+        "type": "leaf",
+        "op": "=",
+        "leftColumn": {
+          "name": "sessionId"
+        }
+      }
+    }],
+    "updates": [{
+      "name": "UpdateRenewedTimestamp",
+      "table": "UserSession",
+      "where": {
+        "type": "leaf",
+        "op": "=",
+        "leftColumn": {
+          "name": "sessionId"
+        }
+      },
+      "setColumns": ["renewedTimestamp"]
+    }],
+    "selects": [{
+      "name": "GetSession",
+      "fromTable": {
+        "name": "UserSession"
+      },
+      "where": {
+        "type": "leaf",
+        "op": "=",
+        "leftColumn": {
+          "name": "sessionId"
+        }
+      },
+      "getColumns": [{
+        "name": "sessionId"
+      }, {
+        "name": "userId"
+      }, {
+        "name": "accountId"
+      }, {
+        "name": "renewedTimestamp"
+      }, {
+        "name": "canPublishShows"
+      }, {
+        "name": "canConsumeShows"
+      }]
+    }],
+    "outputDdl": "./db/ddl",
+    "outputSql": "./db/sql"
+  }
+}]

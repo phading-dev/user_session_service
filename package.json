@@ -1,0 +1,40 @@
+{
+  "name": "@phading/user_servicce",
+  "version": "0.1.0",
+  "description": "user service",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/phading-dev/user_servicce.git"
+  },
+  "author": "Yuxuan Xie <teststaybaka@gmail.com> (http://www.yuxuanxie.com)",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/phading-dev/user_servicce/issues"
+  },
+  "homepage": "https://github.com/phading-dev/user_servicce#readme",
+  "files": [
+    "**/*.d.ts",
+    "**/*.js",
+    "**/*.json"
+  ],
+  "devDependencies": {
+    "@selfage/bundler_cli": "^5.1.5",
+    "@selfage/cli": "^5.0.0",
+    "@selfage/generator_cli": "^2.1.0",
+    "@selfage/test_runner": "^5.0.1",
+    "@selfage/tsconfig": "^1.0.7",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.1.0",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "@google-cloud/spanner": "^7.13.0",
+    "@google-cloud/storage": "^7.12.1",
+    "@phading/constants": "^0.2.0",
+    "@phading/user_session_service_interface": "^0.8.3",
+    "@selfage/http_error": "^1.1.1",
+    "@selfage/service_handler": "^5.5.0",
+    "express": "^4.21.0",
+    "prom-client": "^15.1.3"
+  }
+}
