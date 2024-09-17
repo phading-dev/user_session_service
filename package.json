@@ -1,17 +1,17 @@
 {
-  "name": "@phading/user_servicce",
+  "name": "@phading/user_session_servicce",
   "version": "0.1.0",
-  "description": "user service",
+  "description": "UserSessionService",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/phading-dev/user_servicce.git"
+    "url": "git+https://github.com/phading-dev/user_session_servicce.git"
   },
   "author": "Yuxuan Xie <teststaybaka@gmail.com> (http://www.yuxuanxie.com)",
-  "license": "GPL-3.0-or-later",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/phading-dev/user_servicce/issues"
+    "url": "https://github.com/phading-dev/user_session_servicce/issues"
   },
-  "homepage": "https://github.com/phading-dev/user_servicce#readme",
+  "homepage": "https://github.com/phading-dev/user_session_servicce#readme",
   "files": [
     "**/*.d.ts",
     "**/*.js",
