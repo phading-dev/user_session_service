@@ -30,7 +30,7 @@
         "nullable": true
       }],
       "primaryKeys": [{
-        "column": "sessionId"
+        "name": "sessionId"
       }]
     }],
     "inserts": [{
