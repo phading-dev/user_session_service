@@ -29,9 +29,7 @@
         "type": "bool",
         "nullable": true
       }],
-      "primaryKeys": [{
-        "name": "sessionId"
-      }]
+      "primaryKeys": ["sessionId"]
     }],
     "inserts": [{
       "name": "InsertSession",
@@ -42,50 +40,34 @@
       "name": "DeleteSession",
       "table": "UserSession",
       "where": {
-        "type": "leaf",
         "op": "=",
-        "leftColumn": {
-          "name": "sessionId"
-        }
+        "leftColumn": "sessionId"
       }
     }],
     "updates": [{
       "name": "UpdateRenewedTimestamp",
       "table": "UserSession",
       "where": {
-        "type": "leaf",
         "op": "=",
-        "leftColumn": {
-          "name": "sessionId"
-        }
+        "leftColumn": "sessionId"
       },
       "setColumns": ["renewedTimestamp"]
     }],
     "selects": [{
       "name": "GetSession",
-      "fromTable": {
-        "name": "UserSession"
-      },
+      "table": "UserSession",
       "where": {
-        "type": "leaf",
         "op": "=",
-        "leftColumn": {
-          "name": "sessionId"
-        }
+        "leftColumn": "sessionId"
       },
-      "getColumns": [{
-        "name": "sessionId"
-      }, {
-        "name": "userId"
-      }, {
-        "name": "accountId"
-      }, {
-        "name": "renewedTimestamp"
-      }, {
-        "name": "canPublishShows"
-      }, {
-        "name": "canConsumeShows"
-      }]
+      "getColumns": [
+        "sessionId",
+        "userId",
+        "accountId",
+        "renewedTimestamp",
+        "canPublishShows",
+        "canConsumeShows"
+      ]
     }],
     "outputDdl": "./db/ddl",
     "outputSql": "./db/sql"
