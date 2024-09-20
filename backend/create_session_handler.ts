@@ -3,16 +3,16 @@ import { SessionBuilder } from "../common/session_signer";
 import { SPANNER_DATABASE } from "../common/spanner_client";
 import { insertSession } from "../db/sql";
 import { Database } from "@google-cloud/spanner";
-import { CreateClientSessionHandlerInterface } from "@phading/user_session_service_interface/backend/handler";
+import { CreateSessionHandlerInterface } from "@phading/user_session_service_interface/backend/handler";
 import {
   AccountType,
-  CreateClientSessionRequestBody,
-  CreateClientSessionResponse,
+  CreateSessionRequestBody,
+  CreateSessionResponse,
 } from "@phading/user_session_service_interface/backend/interface";
 
-export class CreateClientSessionHandler extends CreateClientSessionHandlerInterface {
-  public static create(): CreateClientSessionHandler {
-    return new CreateClientSessionHandler(
+export class CreateSessionHandler extends CreateSessionHandlerInterface {
+  public static create(): CreateSessionHandler {
+    return new CreateSessionHandler(
       SPANNER_DATABASE,
       SessionBuilder.create(),
       () => crypto.randomUUID(),
@@ -29,8 +29,8 @@ export class CreateClientSessionHandler extends CreateClientSessionHandlerInterf
 
   public async handle(
     loggingPrefix: string,
-    body: CreateClientSessionRequestBody,
-  ): Promise<CreateClientSessionResponse> {
+    body: CreateSessionRequestBody,
+  ): Promise<CreateSessionResponse> {
     let sessionId = this.generateUuid();
     let canPublishShows = body.accountType === AccountType.PUBLISHER;
     let canConsumeShows = body.accountType === AccountType.CONSUMER;

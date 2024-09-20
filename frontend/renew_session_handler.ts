@@ -2,18 +2,15 @@ import { SessionExchanger } from "../common/session_exchanger";
 import { SPANNER_DATABASE } from "../common/spanner_client";
 import { updateRenewedTimestamp } from "../db/sql";
 import { Database } from "@google-cloud/spanner";
-import { RenewClientSessionHandlerInterface } from "@phading/user_session_service_interface/frontend/handler";
+import { RenewSessionHandlerInterface } from "@phading/user_session_service_interface/frontend/handler";
 import {
-  RenewClientSessionRequestBody,
-  RenewClientSessionResponse,
+  RenewSessionRequestBody,
+  RenewSessionResponse,
 } from "@phading/user_session_service_interface/frontend/interface";
 
-export class RenewClientSessionHandler extends RenewClientSessionHandlerInterface {
-  public static create(): RenewClientSessionHandler {
-    return new RenewClientSessionHandler(
-      SessionExchanger.create(),
-      SPANNER_DATABASE,
-    );
+export class RenewSessionHandler extends RenewSessionHandlerInterface {
+  public static create(): RenewSessionHandler {
+    return new RenewSessionHandler(SessionExchanger.create(), SPANNER_DATABASE);
   }
 
   public constructor(
@@ -25,9 +22,9 @@ export class RenewClientSessionHandler extends RenewClientSessionHandlerInterfac
 
   public async handle(
     loggingPrefix: string,
-    body: RenewClientSessionRequestBody,
+    body: RenewSessionRequestBody,
     sessionStr: string,
-  ): Promise<RenewClientSessionResponse> {
+  ): Promise<RenewSessionResponse> {
     let userSession = (
       await this.sessionExchanger.exchange(loggingPrefix, {
         signedSession: sessionStr,

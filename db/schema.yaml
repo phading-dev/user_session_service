@@ -1,0 +1,65 @@
+- spannerDatabase:
+    name: UserSessionDatabase
+    tables:
+      - name: UserSession
+        columns:
+          - name: sessionId
+            type: string
+          - name: userId
+            type: string
+          - name: accountId
+            type: string
+          - name: createdTimestamp
+            type: timestamp
+            allowCommitTimestamp: true
+          - name: renewedTimestamp
+            type: timestamp
+            allowCommitTimestamp: true
+          - name: canPublishShows
+            type: bool
+            nullable: true
+          - name: canConsumeShows
+            type: bool
+            nullable: true
+        primaryKeys:
+          - sessionId
+    inserts:
+      - name: InsertSession
+        table: UserSession
+        setColumns:
+          - sessionId
+          - userId
+          - accountId
+          - createdTimestamp
+          - renewedTimestamp
+          - canPublishShows
+          - canConsumeShows
+    deletes:
+      - name: DeleteSession
+        table: UserSession
+        where:
+          op: =
+          leftColumn: sessionId
+    updates:
+      - name: UpdateRenewedTimestamp
+        table: UserSession
+        where:
+          op: =
+          leftColumn: sessionId
+        setColumns:
+          - renewedTimestamp
+    selects:
+      - name: GetSession
+        table: UserSession
+        where:
+          op: =
+          leftColumn: sessionId
+        getColumns:
+          - sessionId
+          - userId
+          - accountId
+          - renewedTimestamp
+          - canPublishShows
+          - canConsumeShows
+    outputDdl: ./db/ddl
+    outputSql: ./db/sql
