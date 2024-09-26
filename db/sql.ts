@@ -11,15 +11,15 @@ export interface GetSessionRow {
 
 export async function getSession(
   run: (query: ExecuteSqlRequest) => Promise<RunResponse>,
-  userSessionSessionId: string,
+  userSessionSessionIdEq: string,
 ): Promise<Array<GetSessionRow>> {
   let [rows] = await run({
-    sql: "SELECT UserSession.sessionId, UserSession.userId, UserSession.accountId, UserSession.renewedTimestamp, UserSession.canPublishShows, UserSession.canConsumeShows FROM UserSession WHERE UserSession.sessionId = @userSessionSessionId",
+    sql: "SELECT UserSession.sessionId, UserSession.userId, UserSession.accountId, UserSession.renewedTimestamp, UserSession.canPublishShows, UserSession.canConsumeShows FROM UserSession WHERE UserSession.sessionId = @userSessionSessionIdEq",
     params: {
-      userSessionSessionId: userSessionSessionId,
+      userSessionSessionIdEq: userSessionSessionIdEq,
     },
     types: {
-      userSessionSessionId: { type: "string" },
+      userSessionSessionIdEq: { type: "string" },
     }
   });
   let resRows = new Array<GetSessionRow>();
@@ -65,30 +65,30 @@ export async function insertSession(
 
 export async function updateRenewedTimestamp(
   run: (query: ExecuteSqlRequest) => Promise<RunResponse>,
-  userSessionSessionId: string,
+  userSessionSessionIdEq: string,
 ): Promise<void> {
   await run({
-    sql: "UPDATE UserSession SET renewedTimestamp = PENDING_COMMIT_TIMESTAMP() WHERE UserSession.sessionId = @userSessionSessionId",
+    sql: "UPDATE UserSession SET renewedTimestamp = PENDING_COMMIT_TIMESTAMP() WHERE UserSession.sessionId = @userSessionSessionIdEq",
     params: {
-      userSessionSessionId: userSessionSessionId,
+      userSessionSessionIdEq: userSessionSessionIdEq,
     },
     types: {
-      userSessionSessionId: { type: "string" },
+      userSessionSessionIdEq: { type: "string" },
     }
   });
 }
 
 export async function deleteSession(
   run: (query: ExecuteSqlRequest) => Promise<RunResponse>,
-  userSessionSessionId: string,
+  userSessionSessionIdEq: string,
 ): Promise<void> {
   await run({
-    sql: "DELETE UserSession WHERE UserSession.sessionId = @userSessionSessionId",
+    sql: "DELETE UserSession WHERE UserSession.sessionId = @userSessionSessionIdEq",
     params: {
-      userSessionSessionId: userSessionSessionId,
+      userSessionSessionIdEq: userSessionSessionIdEq,
     },
     types: {
-      userSessionSessionId: { type: "string" },
+      userSessionSessionIdEq: { type: "string" },
     }
   });
 }
