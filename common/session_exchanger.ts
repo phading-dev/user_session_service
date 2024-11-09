@@ -1,58 +1,56 @@
-import { deleteSession, getSession } from "../db/sql";
-import { SESSION_LONGEVITY_MS } from "./constants";
+import EventEmitter from "events";
+import { deleteExpiredSessionStatement, getSession } from "../db/sql";
+import { SESSION_LONGEVITY_MS } from "./params";
+import { RequestBody, Response } from "./session_exchanger_interface";
 import { SessionExtractor } from "./session_signer";
 import { SPANNER_DATABASE } from "./spanner_client";
 import { Database } from "@google-cloud/spanner";
-import {
-  ExchangeSessionAndCheckCapabilityRequestBody,
-  ExchangeSessionAndCheckCapabilityResponse,
-} from "@phading/user_session_service_interface/backend/interface";
 import { newUnauthorizedError } from "@selfage/http_error";
 
-export class SessionExchanger {
+export interface SessionExchanger {
+  on(event: "cleanedUp", listener: () => void): this;
+}
+
+export class SessionExchanger extends EventEmitter {
   public static create(): SessionExchanger {
     return new SessionExchanger(
-      SessionExtractor.create(),
       SPANNER_DATABASE,
+      SessionExtractor.create(),
       () => Date.now(),
     );
   }
 
   public constructor(
-    private sessionExtractor: SessionExtractor,
     private database: Database,
+    private sessionExtractor: SessionExtractor,
     private getNow: () => number,
-  ) {}
+  ) {
+    super();
+  }
 
   public async exchange(
     loggingPrefix: string,
-    body: ExchangeSessionAndCheckCapabilityRequestBody,
-  ): Promise<ExchangeSessionAndCheckCapabilityResponse> {
+    body: RequestBody,
+  ): Promise<Response> {
     let sessionId = this.sessionExtractor.extractSessionId(
-      body.signedSession,
       loggingPrefix,
+      body.signedSession,
     );
-    let rows = await getSession((query) => this.database.run(query), sessionId);
+    let rows = await getSession(this.database, sessionId);
     if (rows.length === 0) {
       throw newUnauthorizedError(`${loggingPrefix} session not found.`);
     }
     let session = rows[0];
-    if (
-      this.getNow() - session.userSessionRenewedTimestamp >
-      SESSION_LONGEVITY_MS
-    ) {
-      deleteSession(
-        (query) => this.database.run(query),
-        session.userSessionSessionId,
-      );
+    let validTimestamp = this.getNow() - SESSION_LONGEVITY_MS;
+    if (session.userSessionRenewedTimestamp < validTimestamp) {
+      // Fire and forget.
+      this.cleanUpExpredSession(validTimestamp);
       throw newUnauthorizedError(`${loggingPrefix} session expired.`);
     }
     return {
-      userSession: {
-        sessionId: session.userSessionSessionId,
-        userId: session.userSessionUserId,
-        accountId: session.userSessionAccountId,
-      },
+      sessionId: sessionId,
+      userId: session.userSessionUserId,
+      accountId: session.userSessionAccountId,
       canConsumeShows: body.checkCanConsumeShows
         ? session.userSessionCanConsumeShows
         : undefined,
@@ -60,5 +58,15 @@ export class SessionExchanger {
         ? session.userSessionCanPublishShows
         : undefined,
     };
+  }
+
+  private async cleanUpExpredSession(validTimestamp: number): Promise<void> {
+    await this.database.runTransactionAsync(async (transaction) => {
+      await transaction.batchUpdate([
+        deleteExpiredSessionStatement(validTimestamp),
+      ]);
+      await transaction.commit();
+    });
+    this.emit("cleanedUp");
   }
 }

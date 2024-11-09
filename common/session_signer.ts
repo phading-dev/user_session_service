@@ -19,14 +19,14 @@ export class SessionSigner {
 }
 
 export class SessionBuilder {
+  public static create(): SessionBuilder {
+    return new SessionBuilder(new SessionSigner(), () => Date.now());
+  }
+
   public constructor(
     private sessionSigner: SessionSigner,
     private getNow: () => number,
   ) {}
-
-  public static create(): SessionBuilder {
-    return new SessionBuilder(new SessionSigner(), () => Date.now());
-  }
 
   public build(sessionId: string): string {
     let timestamp = millisecondsToSeconds(this.getNow());
@@ -36,15 +36,15 @@ export class SessionBuilder {
 }
 
 export class SessionExtractor {
-  public constructor(private sessionSigner: SessionSigner) {}
-
   public static create(): SessionExtractor {
     return new SessionExtractor(new SessionSigner());
   }
 
+  public constructor(private sessionSigner: SessionSigner) {}
+
   public extractSessionId(
-    signedSession: string,
     loggingPrefix: string,
+    signedSession: string,
   ): string {
     if (typeof signedSession !== "string") {
       throw newUnauthorizedError(

@@ -1,0 +1,30 @@
+- message:
+    name: RequestBody
+    fields:
+      - name: signedSession
+        type: string
+        index: 1
+      - name: checkCanConsumeShows
+        type: boolean
+        index: 2
+      - name: checkCanPublishShows
+        type: boolean
+        index: 3
+- message:
+    name: Response
+    fields:
+      - name: sessionId
+        type: string
+        index: 1
+      - name: userId
+        type: string
+        index: 2
+      - name: accountId
+        type: string
+        index: 3
+      - name: canConsumeShows
+        type: boolean
+        index: 4
+      - name: canPublishShows
+        type: boolean
+        index: 5

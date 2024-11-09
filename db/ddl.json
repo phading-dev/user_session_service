@@ -12,18 +12,21 @@
       "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN accountId STRING(MAX) NOT NULL"
     }, {
       "name": "createdTimestamp",
-      "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN createdTimestamp TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp = true)"
+      "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN createdTimestamp TIMESTAMP NOT NULL"
     }, {
       "name": "renewedTimestamp",
-      "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN renewedTimestamp TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp = true)"
+      "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN renewedTimestamp TIMESTAMP NOT NULL"
     }, {
       "name": "canPublishShows",
-      "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN canPublishShows BOOL"
+      "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN canPublishShows BOOL NOT NULL"
     }, {
       "name": "canConsumeShows",
-      "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN canConsumeShows BOOL"
+      "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN canConsumeShows BOOL NOT NULL"
     }],
-    "createTableDdl": "CREATE TABLE UserSession (sessionId STRING(MAX) NOT NULL, userId STRING(MAX) NOT NULL, accountId STRING(MAX) NOT NULL, createdTimestamp TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp = true), renewedTimestamp TIMESTAMP NOT NULL OPTIONS (allow_commit_timestamp = true), canPublishShows BOOL, canConsumeShows BOOL) PRIMARY KEY (sessionId ASC)",
-    "indexes": []
+    "createTableDdl": "CREATE TABLE UserSession (sessionId STRING(MAX) NOT NULL, userId STRING(MAX) NOT NULL, accountId STRING(MAX) NOT NULL, createdTimestamp TIMESTAMP NOT NULL, renewedTimestamp TIMESTAMP NOT NULL, canPublishShows BOOL NOT NULL, canConsumeShows BOOL NOT NULL) PRIMARY KEY (sessionId ASC)",
+    "indexes": [{
+      "name": "ByRenewedTimestamp",
+      "createIndexDdl": "CREATE INDEX ByRenewedTimestamp ON UserSession(renewedTimestamp)"
+    }]
   }]
 }

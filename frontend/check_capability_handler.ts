@@ -19,14 +19,10 @@ export class CheckCapabilityHandler extends CheckCapabilityHandlerInterface {
     body: CheckCapabilityRequestBody,
     sessionStr: string,
   ): Promise<CheckCapabilityResponse> {
-    let response = await this.sessionExchanger.exchange(loggingPrefix, {
+    return this.sessionExchanger.exchange(loggingPrefix, {
       signedSession: sessionStr,
       checkCanConsumeShows: body.checkCanConsumeShows,
       checkCanPublishShows: body.checkCanPublishShows,
     });
-    return {
-      canConsumeShows: response.canConsumeShows,
-      canPublishShows: response.canPublishShows,
-    };
   }
 }

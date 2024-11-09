@@ -11,18 +11,18 @@
             type: string
           - name: createdTimestamp
             type: timestamp
-            allowCommitTimestamp: true
           - name: renewedTimestamp
             type: timestamp
-            allowCommitTimestamp: true
           - name: canPublishShows
             type: bool
-            nullable: true
           - name: canConsumeShows
             type: bool
-            nullable: true
         primaryKeys:
           - sessionId
+        indexes:
+          - name: ByRenewedTimestamp
+            columns:
+              - renewedTimestamp
     inserts:
       - name: InsertSession
         table: UserSession
@@ -40,6 +40,11 @@
         where:
           op: =
           leftColumn: sessionId
+      - name: DeleteExpiredSession
+        table: UserSession
+        where:
+          op: <
+          leftColumn: renewedTimestamp
     updates:
       - name: UpdateRenewedTimestamp
         table: UserSession
@@ -55,7 +60,6 @@
           op: =
           leftColumn: sessionId
         getColumns:
-          - sessionId
           - userId
           - accountId
           - renewedTimestamp
