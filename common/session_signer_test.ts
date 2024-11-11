@@ -1,9 +1,6 @@
-import {
-  SessionBuilder,
-  SessionExtractor,
-} from "./session_signer";
+import { SessionBuilder, SessionExtractor } from "./session_signer";
 import { newUnauthorizedError } from "@selfage/http_error";
-import { assertThat, assertThrow, eqError, eq } from "@selfage/test_matcher";
+import { assertThat, assertThrow, eq, eqError } from "@selfage/test_matcher";
 import { TEST_RUNNER } from "@selfage/test_runner";
 
 TEST_RUNNER.run({
@@ -19,14 +16,10 @@ TEST_RUNNER.run({
 
         // Execute
         let signedSession = builder.build(sessionId);
-        let extractedSession = extractor.extractSessionId(signedSession, "");
+        let extractedSession = extractor.extractSessionId("", signedSession);
 
         // Verify
-        assertThat(
-          extractedSession,
-          eq(sessionId),
-          "session id",
-        );
+        assertThat(extractedSession, eq(sessionId), "session id");
       },
     },
     {
@@ -37,7 +30,7 @@ TEST_RUNNER.run({
 
         // Execute
         let error = assertThrow(() =>
-          extractor.extractSessionId(undefined, ""),
+          extractor.extractSessionId("", undefined),
         );
 
         // Verify
@@ -57,7 +50,7 @@ TEST_RUNNER.run({
 
         // Execute
         let error = assertThrow(() =>
-          extractor.extractSessionId(incorrectSignedSession, ""),
+          extractor.extractSessionId("", incorrectSignedSession),
         );
 
         // Verify
