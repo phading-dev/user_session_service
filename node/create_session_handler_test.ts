@@ -1,13 +1,13 @@
 import { SessionBuilderMock } from "../common/session_signer_mock";
 import { SPANNER_DATABASE } from "../common/spanner_client";
-import { deleteSessionStatement, getSession } from "../db/sql";
+import { GET_SESSION_ROW, deleteSessionStatement, getSession } from "../db/sql";
 import { CreateSessionHandler } from "./create_session_handler";
 import {
   AccountType,
   CREATE_SESSION_RESPONSE,
-} from "@phading/user_session_service_interface/backend/interface";
+} from "@phading/user_session_service_interface/node/interface";
 import { eqMessage } from "@selfage/message/test_matcher";
-import { assertThat, eq } from "@selfage/test_matcher";
+import { assertThat, isArray } from "@selfage/test_matcher";
 import { TEST_RUNNER } from "@selfage/test_runner";
 
 TEST_RUNNER.run({
@@ -44,19 +44,21 @@ TEST_RUNNER.run({
           ),
           "resposne",
         );
-        let [session] = await getSession(SPANNER_DATABASE, "id1");
-        assertThat(session.userSessionUserId, eq("user1"), "user id");
-        assertThat(session.userSessionAccountId, eq("account1"), "account id");
         assertThat(
-          session.userSessionRenewedTimestamp,
-          eq(1000),
-          "renewed timestamp",
-        );
-        assertThat(session.userSessionCanConsumeShows, eq(true), "can consume");
-        assertThat(
-          session.userSessionCanPublishShows,
-          eq(false),
-          "can not publish",
+          await getSession(SPANNER_DATABASE, "id1"),
+          isArray([
+            eqMessage(
+              {
+                userSessionUserId: "user1",
+                userSessionAccountId: "account1",
+                userSessionRenewedTimestamp: 1000,
+                userSessionCanConsumeShows: true,
+                userSessionCanPublishShows: false,
+              },
+              GET_SESSION_ROW,
+            ),
+          ]),
+          "session",
         );
       },
       tearDown: async () => {
@@ -97,13 +99,22 @@ TEST_RUNNER.run({
           ),
           "resposne",
         );
-        let [session] = await getSession(SPANNER_DATABASE, "id1");
         assertThat(
-          session.userSessionCanConsumeShows,
-          eq(false),
-          "can not consume",
+          await getSession(SPANNER_DATABASE, "id1"),
+          isArray([
+            eqMessage(
+              {
+                userSessionUserId: "user1",
+                userSessionAccountId: "account1",
+                userSessionRenewedTimestamp: 1000,
+                userSessionCanConsumeShows: false,
+                userSessionCanPublishShows: true,
+              },
+              GET_SESSION_ROW,
+            ),
+          ]),
+          "session",
         );
-        assertThat(session.userSessionCanPublishShows, eq(true), "can publish");
       },
       tearDown: async () => {
         await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {

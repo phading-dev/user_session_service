@@ -2,11 +2,11 @@ import { SessionExchanger } from "../common/session_exchanger";
 import { SPANNER_DATABASE } from "../common/spanner_client";
 import { updateRenewedTimestampStatement } from "../db/sql";
 import { Database } from "@google-cloud/spanner";
-import { RenewSessionHandlerInterface } from "@phading/user_session_service_interface/frontend/handler";
+import { RenewSessionHandlerInterface } from "@phading/user_session_service_interface/web/handler";
 import {
   RenewSessionRequestBody,
   RenewSessionResponse,
-} from "@phading/user_session_service_interface/frontend/interface";
+} from "@phading/user_session_service_interface/web/interface";
 
 export class RenewSessionHandler extends RenewSessionHandlerInterface {
   public static create(): RenewSessionHandler {
@@ -35,7 +35,7 @@ export class RenewSessionHandler extends RenewSessionHandlerInterface {
     });
     await this.database.runTransactionAsync(async (transaction) => {
       await transaction.batchUpdate([
-        updateRenewedTimestampStatement(this.getNow(), resposne.sessionId),
+        updateRenewedTimestampStatement(resposne.sessionId, this.getNow()),
       ]);
       await transaction.commit();
     });

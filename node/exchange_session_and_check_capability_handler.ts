@@ -1,9 +1,9 @@
 import { SessionExchanger } from "../common/session_exchanger";
-import { ExchangeSessionAndCheckCapabilityHandlerInterface } from "@phading/user_session_service_interface/backend/handler";
+import { ExchangeSessionAndCheckCapabilityHandlerInterface } from "@phading/user_session_service_interface/node/handler";
 import {
   ExchangeSessionAndCheckCapabilityRequestBody,
   ExchangeSessionAndCheckCapabilityResponse,
-} from "@phading/user_session_service_interface/backend/interface";
+} from "@phading/user_session_service_interface/node/interface";
 
 export class ExchangeSessionAndCheckCapabilityHandler extends ExchangeSessionAndCheckCapabilityHandlerInterface {
   public static create(): ExchangeSessionAndCheckCapabilityHandler {

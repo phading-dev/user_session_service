@@ -3,12 +3,12 @@ import { SessionBuilder } from "../common/session_signer";
 import { SPANNER_DATABASE } from "../common/spanner_client";
 import { insertSessionStatement } from "../db/sql";
 import { Database } from "@google-cloud/spanner";
-import { CreateSessionHandlerInterface } from "@phading/user_session_service_interface/backend/handler";
+import { CreateSessionHandlerInterface } from "@phading/user_session_service_interface/node/handler";
 import {
   AccountType,
   CreateSessionRequestBody,
   CreateSessionResponse,
-} from "@phading/user_session_service_interface/backend/interface";
+} from "@phading/user_session_service_interface/node/interface";
 
 export class CreateSessionHandler extends CreateSessionHandlerInterface {
   public static create(): CreateSessionHandler {

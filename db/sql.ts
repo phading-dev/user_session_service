@@ -1,3 +1,4 @@
+import { PrimitiveType, MessageDescriptor } from '@selfage/message/descriptor';
 import { Database, Transaction } from '@google-cloud/spanner';
 import { Statement } from '@google-cloud/spanner/build/src/transaction';
 
@@ -8,6 +9,31 @@ export interface GetSessionRow {
   userSessionCanPublishShows: boolean,
   userSessionCanConsumeShows: boolean,
 }
+
+export let GET_SESSION_ROW: MessageDescriptor<GetSessionRow> = {
+  name: 'GetSessionRow',
+  fields: [{
+    name: 'userSessionUserId',
+    index: 1,
+    primitiveType: PrimitiveType.STRING,
+  }, {
+    name: 'userSessionAccountId',
+    index: 2,
+    primitiveType: PrimitiveType.STRING,
+  }, {
+    name: 'userSessionRenewedTimestamp',
+    index: 3,
+    primitiveType: PrimitiveType.NUMBER,
+  }, {
+    name: 'userSessionCanPublishShows',
+    index: 4,
+    primitiveType: PrimitiveType.BOOLEAN,
+  }, {
+    name: 'userSessionCanConsumeShows',
+    index: 5,
+    primitiveType: PrimitiveType.BOOLEAN,
+  }],
+};
 
 export async function getSession(
   runner: Database | Transaction,
@@ -68,18 +94,18 @@ export function insertSessionStatement(
 }
 
 export function updateRenewedTimestampStatement(
-  setRenewedTimestamp: number,
   userSessionSessionIdEq: string,
+  setRenewedTimestamp: number,
 ): Statement {
   return {
     sql: "UPDATE UserSession SET renewedTimestamp = @setRenewedTimestamp WHERE UserSession.sessionId = @userSessionSessionIdEq",
     params: {
-      setRenewedTimestamp: new Date(setRenewedTimestamp).toISOString(),
       userSessionSessionIdEq: userSessionSessionIdEq,
+      setRenewedTimestamp: new Date(setRenewedTimestamp).toISOString(),
     },
     types: {
-      setRenewedTimestamp: { type: "timestamp" },
       userSessionSessionIdEq: { type: "string" },
+      setRenewedTimestamp: { type: "timestamp" },
     }
   };
 }
