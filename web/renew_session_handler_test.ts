@@ -23,12 +23,14 @@ TEST_RUNNER.run({
           await transaction.batchUpdate([
             insertSessionStatement(
               "session1",
-              "user1",
-              "account1",
+              {
+                userId: "user1",
+                accountId: "account1",
+                canConsumeShows: false,
+                canPublishShows: false,
+              },
               100,
               100,
-              false,
-              false,
             ),
           ]);
           await transaction.commit();
@@ -50,11 +52,13 @@ TEST_RUNNER.run({
           isArray([
             eqMessage(
               {
-                userSessionUserId: "user1",
-                userSessionAccountId: "account1",
+                userSessionData: {
+                  userId: "user1",
+                  accountId: "account1",
+                  canConsumeShows: false,
+                  canPublishShows: false,
+                },
                 userSessionRenewedTimestamp: 1000,
-                userSessionCanConsumeShows: false,
-                userSessionCanPublishShows: false,
               },
               GET_SESSION_ROW,
             ),

@@ -49,11 +49,13 @@ TEST_RUNNER.run({
           isArray([
             eqMessage(
               {
-                userSessionUserId: "user1",
-                userSessionAccountId: "account1",
+                userSessionData: {
+                  userId: "user1",
+                  accountId: "account1",
+                  canConsumeShows: true,
+                  canPublishShows: false,
+                },
                 userSessionRenewedTimestamp: 1000,
-                userSessionCanConsumeShows: true,
-                userSessionCanPublishShows: false,
               },
               GET_SESSION_ROW,
             ),
@@ -104,11 +106,13 @@ TEST_RUNNER.run({
           isArray([
             eqMessage(
               {
-                userSessionUserId: "user1",
-                userSessionAccountId: "account1",
+                userSessionData: {
+                  userId: "user1",
+                  accountId: "account1",
+                  canConsumeShows: false,
+                  canPublishShows: true,
+                },
                 userSessionRenewedTimestamp: 1000,
-                userSessionCanConsumeShows: false,
-                userSessionCanPublishShows: true,
               },
               GET_SESSION_ROW,
             ),

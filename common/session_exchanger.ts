@@ -40,22 +40,23 @@ export class SessionExchanger extends EventEmitter {
     if (rows.length === 0) {
       throw newUnauthorizedError(`${loggingPrefix} session not found.`);
     }
-    let session = rows[0];
+    let sessionRow = rows[0];
     let validTimestamp = this.getNow() - SESSION_LONGEVITY_MS;
-    if (session.userSessionRenewedTimestamp < validTimestamp) {
+    if (sessionRow.userSessionRenewedTimestamp < validTimestamp) {
       // Fire and forget.
       this.cleanUpExpredSession(validTimestamp);
       throw newUnauthorizedError(`${loggingPrefix} session expired.`);
     }
+    let data = sessionRow.userSessionData;
     return {
       sessionId: sessionId,
-      userId: session.userSessionUserId,
-      accountId: session.userSessionAccountId,
+      userId: data.userId,
+      accountId: data.accountId,
       canConsumeShows: body.checkCanConsumeShows
-        ? session.userSessionCanConsumeShows
+        ? data.canConsumeShows
         : undefined,
       canPublishShows: body.checkCanPublishShows
-        ? session.userSessionCanPublishShows
+        ? data.canPublishShows
         : undefined,
     };
   }

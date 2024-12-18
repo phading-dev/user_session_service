@@ -41,12 +41,14 @@ export class CreateSessionHandler extends CreateSessionHandlerInterface {
       await transaction.batchUpdate([
         insertSessionStatement(
           sessionId,
-          body.userId,
-          body.accountId,
+          {
+            userId: body.userId,
+            accountId: body.accountId,
+            canConsumeShows,
+            canPublishShows,
+          },
           now,
           now,
-          canPublishShows,
-          canConsumeShows,
         ),
       ]);
       await transaction.commit();

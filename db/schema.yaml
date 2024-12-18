@@ -1,3 +1,18 @@
+- message:
+    name: UserSessionData
+    fields:
+      - name: userId
+        type: string
+        index: 1
+      - name: accountId
+        type: string
+        index: 2
+      - name: canPublishShows
+        type: boolean
+        index: 3
+      - name: canConsumeShows
+        type: boolean
+        index: 4
 - spannerDatabase:
     name: UserSessionDatabase
     tables:
@@ -5,18 +20,12 @@
         columns:
           - name: sessionId
             type: string
-          - name: userId
-            type: string
-          - name: accountId
-            type: string
+          - name: data
+            type: UserSessionData
           - name: createdTimestamp
             type: timestamp
           - name: renewedTimestamp
             type: timestamp
-          - name: canPublishShows
-            type: bool
-          - name: canConsumeShows
-            type: bool
         primaryKeys:
           - sessionId
         indexes:
@@ -28,12 +37,9 @@
         table: UserSession
         setColumns:
           - sessionId
-          - userId
-          - accountId
+          - data
           - createdTimestamp
           - renewedTimestamp
-          - canPublishShows
-          - canConsumeShows
     deletes:
       - name: DeleteSession
         table: UserSession
@@ -60,10 +66,7 @@
           op: =
           leftColumn: sessionId
         getColumns:
-          - userId
-          - accountId
+          - data
           - renewedTimestamp
-          - canPublishShows
-          - canConsumeShows
     outputDdl: ./db/ddl
     outputSql: ./db/sql

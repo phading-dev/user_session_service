@@ -25,12 +25,14 @@ TEST_RUNNER.run({
           await transaction.batchUpdate([
             insertSessionStatement(
               "session1",
-              "user1",
-              "account1",
+              {
+                userId: "user1",
+                accountId: "account1",
+                canConsumeShows: false,
+                canPublishShows: false,
+              },
               100,
               400,
-              false,
-              false,
             ),
           ]);
           await transaction.commit();
@@ -134,12 +136,14 @@ TEST_RUNNER.run({
           await transaction.batchUpdate([
             insertSessionStatement(
               "session1",
-              "user1",
-              "account1",
+              {
+                userId: "user1",
+                accountId: "account1",
+                canConsumeShows: false,
+                canPublishShows: false,
+              },
               100,
               400,
-              false,
-              false,
             ),
           ]);
           await transaction.commit();
