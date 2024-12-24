@@ -1,11 +1,11 @@
+import { USER_SESSION } from "../db/schema";
 import {
   deleteSessionStatement,
   getSession,
-  insertSessionStatement,
+  insertUserSessionStatement,
 } from "../db/sql";
 import { SESSION_LONGEVITY_MS } from "./params";
 import { SessionExchanger } from "./session_exchanger";
-import { RESPONSE } from "./session_exchanger_interface";
 import { SessionExtractorMock } from "./session_signer_mock";
 import { SPANNER_DATABASE } from "./spanner_client";
 import { newUnauthorizedError } from "@selfage/http_error";
@@ -23,17 +23,15 @@ TEST_RUNNER.run({
         // Prepare
         await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
           await transaction.batchUpdate([
-            insertSessionStatement(
-              "session1",
-              {
-                userId: "user1",
-                accountId: "account1",
-                canConsumeShows: false,
-                canPublishShows: false,
-              },
-              100,
-              400,
-            ),
+            insertUserSessionStatement({
+              sessionId: "session1",
+              userId: "user1",
+              accountId: "account1",
+              canConsumeShows: false,
+              canPublishShows: false,
+              createdTimeMs: 100,
+              renewedTimeMs: 400,
+            }),
           ]);
           await transaction.commit();
         });
@@ -66,7 +64,7 @@ TEST_RUNNER.run({
               accountId: "account1",
               canConsumeShows: false,
             },
-            RESPONSE,
+            USER_SESSION,
           ),
           "response",
         );
@@ -87,7 +85,7 @@ TEST_RUNNER.run({
               accountId: "account1",
               canPublishShows: false,
             },
-            RESPONSE,
+            USER_SESSION,
           ),
           "response 2",
         );
@@ -122,7 +120,7 @@ TEST_RUNNER.run({
         // Verify
         assertThat(
           error,
-          eqHttpError(newUnauthorizedError("session not found")),
+          eqHttpError(newUnauthorizedError("Session not found")),
           "error",
         );
       },
@@ -134,17 +132,15 @@ TEST_RUNNER.run({
         // Prepare
         await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
           await transaction.batchUpdate([
-            insertSessionStatement(
-              "session1",
-              {
-                userId: "user1",
-                accountId: "account1",
-                canConsumeShows: false,
-                canPublishShows: false,
-              },
-              100,
-              400,
-            ),
+            insertUserSessionStatement({
+              sessionId: "session1",
+              userId: "user1",
+              accountId: "account1",
+              canConsumeShows: false,
+              canPublishShows: false,
+              createdTimeMs: 100,
+              renewedTimeMs: 400,
+            }),
           ]);
           await transaction.commit();
         });
@@ -171,7 +167,7 @@ TEST_RUNNER.run({
         // Verify
         assertThat(
           error,
-          eqHttpError(newUnauthorizedError("session expired")),
+          eqHttpError(newUnauthorizedError("Session expired")),
           "error",
         );
         assertThat(

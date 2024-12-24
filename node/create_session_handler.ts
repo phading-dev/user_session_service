@@ -1,7 +1,7 @@
 import crypto = require("crypto");
 import { SessionBuilder } from "../common/session_signer";
 import { SPANNER_DATABASE } from "../common/spanner_client";
-import { insertSessionStatement } from "../db/sql";
+import { insertUserSessionStatement } from "../db/sql";
 import { Database } from "@google-cloud/spanner";
 import { CreateSessionHandlerInterface } from "@phading/user_session_service_interface/node/handler";
 import {
@@ -39,17 +39,15 @@ export class CreateSessionHandler extends CreateSessionHandlerInterface {
     await this.database.runTransactionAsync(async (transaction) => {
       let now = this.getNow();
       await transaction.batchUpdate([
-        insertSessionStatement(
+        insertUserSessionStatement({
           sessionId,
-          {
-            userId: body.userId,
-            accountId: body.accountId,
-            canConsumeShows,
-            canPublishShows,
-          },
-          now,
-          now,
-        ),
+          userId: body.userId,
+          accountId: body.accountId,
+          canConsumeShows,
+          canPublishShows,
+          createdTimeMs: now,
+          renewedTimeMs: now,
+        }),
       ]);
       await transaction.commit();
     });

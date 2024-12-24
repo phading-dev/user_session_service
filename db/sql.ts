@@ -1,86 +1,73 @@
-import { UserSessionData, USER_SESSION_DATA } from './schema';
-import { deserializeMessage, serializeMessage } from '@selfage/message/serializer';
-import { PrimitiveType, MessageDescriptor } from '@selfage/message/descriptor';
-import { Database, Transaction } from '@google-cloud/spanner';
 import { Statement } from '@google-cloud/spanner/build/src/transaction';
+import { Spanner, Database, Transaction } from '@google-cloud/spanner';
+import { UserSession, USER_SESSION } from './schema';
+import { serializeMessage, deserializeMessage } from '@selfage/message/serializer';
+import { MessageDescriptor } from '@selfage/message/descriptor';
 
-export interface GetSessionRow {
-  userSessionData: UserSessionData,
-  userSessionRenewedTimestamp: number,
+export function insertUserSessionStatement(
+  data: UserSession,
+): Statement {
+  return insertUserSessionInternalStatement(
+    data.sessionId,
+    data.accountId,
+    data.renewedTimeMs,
+    data
+  );
 }
 
-export let GET_SESSION_ROW: MessageDescriptor<GetSessionRow> = {
-  name: 'GetSessionRow',
-  fields: [{
-    name: 'userSessionData',
-    index: 1,
-    messageType: USER_SESSION_DATA,
-  }, {
-    name: 'userSessionRenewedTimestamp',
-    index: 2,
-    primitiveType: PrimitiveType.NUMBER,
-  }],
-};
-
-export async function getSession(
-  runner: Database | Transaction,
-  userSessionSessionIdEq: string,
-): Promise<Array<GetSessionRow>> {
-  let [rows] = await runner.run({
-    sql: "SELECT UserSession.data, UserSession.renewedTimestamp FROM UserSession WHERE UserSession.sessionId = @userSessionSessionIdEq",
-    params: {
-      userSessionSessionIdEq: userSessionSessionIdEq,
-    },
-    types: {
-      userSessionSessionIdEq: { type: "string" },
-    }
-  });
-  let resRows = new Array<GetSessionRow>();
-  for (let row of rows) {
-    resRows.push({
-      userSessionData: deserializeMessage(row.at(0).value, USER_SESSION_DATA),
-      userSessionRenewedTimestamp: row.at(1).value.valueOf(),
-    });
-  }
-  return resRows;
-}
-
-export function insertSessionStatement(
+export function insertUserSessionInternalStatement(
   sessionId: string,
-  data: UserSessionData,
-  createdTimestamp: number,
-  renewedTimestamp: number,
+  accountId: string,
+  renewedTimeMs: number,
+  data: UserSession,
 ): Statement {
   return {
-    sql: "INSERT UserSession (sessionId, data, createdTimestamp, renewedTimestamp) VALUES (@sessionId, @data, @createdTimestamp, @renewedTimestamp)",
+    sql: "INSERT UserSession (sessionId, accountId, renewedTimeMs, data) VALUES (@sessionId, @accountId, @renewedTimeMs, @data)",
     params: {
       sessionId: sessionId,
-      data: Buffer.from(serializeMessage(data, USER_SESSION_DATA).buffer),
-      createdTimestamp: new Date(createdTimestamp).toISOString(),
-      renewedTimestamp: new Date(renewedTimestamp).toISOString(),
+      accountId: accountId,
+      renewedTimeMs: Spanner.float(renewedTimeMs),
+      data: Buffer.from(serializeMessage(data, USER_SESSION).buffer),
     },
     types: {
       sessionId: { type: "string" },
+      accountId: { type: "string" },
+      renewedTimeMs: { type: "float64" },
       data: { type: "bytes" },
-      createdTimestamp: { type: "timestamp" },
-      renewedTimestamp: { type: "timestamp" },
     }
   };
 }
 
-export function updateRenewedTimestampStatement(
+export function updateUserSessionStatement(
+  data: UserSession,
+): Statement {
+  return updateUserSessionInternalStatement(
+    data.sessionId,
+    data.accountId,
+    data.renewedTimeMs,
+    data
+  );
+}
+
+export function updateUserSessionInternalStatement(
   userSessionSessionIdEq: string,
-  setRenewedTimestamp: number,
+  setAccountId: string,
+  setRenewedTimeMs: number,
+  setData: UserSession,
 ): Statement {
   return {
-    sql: "UPDATE UserSession SET renewedTimestamp = @setRenewedTimestamp WHERE UserSession.sessionId = @userSessionSessionIdEq",
+    sql: "UPDATE UserSession SET accountId = @setAccountId, renewedTimeMs = @setRenewedTimeMs, data = @setData WHERE (UserSession.sessionId = @userSessionSessionIdEq)",
     params: {
       userSessionSessionIdEq: userSessionSessionIdEq,
-      setRenewedTimestamp: new Date(setRenewedTimestamp).toISOString(),
+      setAccountId: setAccountId,
+      setRenewedTimeMs: Spanner.float(setRenewedTimeMs),
+      setData: Buffer.from(serializeMessage(setData, USER_SESSION).buffer),
     },
     types: {
       userSessionSessionIdEq: { type: "string" },
-      setRenewedTimestamp: { type: "timestamp" },
+      setAccountId: { type: "string" },
+      setRenewedTimeMs: { type: "float64" },
+      setData: { type: "bytes" },
     }
   };
 }
@@ -100,15 +87,50 @@ export function deleteSessionStatement(
 }
 
 export function deleteExpiredSessionStatement(
-  userSessionRenewedTimestampLt: number,
+  userSessionRenewedTimeMsLt: number,
 ): Statement {
   return {
-    sql: "DELETE UserSession WHERE UserSession.renewedTimestamp < @userSessionRenewedTimestampLt",
+    sql: "DELETE UserSession WHERE UserSession.renewedTimeMs < @userSessionRenewedTimeMsLt",
     params: {
-      userSessionRenewedTimestampLt: new Date(userSessionRenewedTimestampLt).toISOString(),
+      userSessionRenewedTimeMsLt: Spanner.float(userSessionRenewedTimeMsLt),
     },
     types: {
-      userSessionRenewedTimestampLt: { type: "timestamp" },
+      userSessionRenewedTimeMsLt: { type: "float64" },
     }
   };
+}
+
+export interface GetSessionRow {
+  userSessionData: UserSession,
+}
+
+export let GET_SESSION_ROW: MessageDescriptor<GetSessionRow> = {
+  name: 'GetSessionRow',
+  fields: [{
+    name: 'userSessionData',
+    index: 1,
+    messageType: USER_SESSION,
+  }],
+};
+
+export async function getSession(
+  runner: Database | Transaction,
+  userSessionSessionIdEq: string,
+): Promise<Array<GetSessionRow>> {
+  let [rows] = await runner.run({
+    sql: "SELECT UserSession.data FROM UserSession WHERE UserSession.sessionId = @userSessionSessionIdEq",
+    params: {
+      userSessionSessionIdEq: userSessionSessionIdEq,
+    },
+    types: {
+      userSessionSessionIdEq: { type: "string" },
+    }
+  });
+  let resRows = new Array<GetSessionRow>();
+  for (let row of rows) {
+    resRows.push({
+      userSessionData: deserializeMessage(row.at(0).value, USER_SESSION),
+    });
+  }
+  return resRows;
 }

@@ -50,12 +50,14 @@ TEST_RUNNER.run({
             eqMessage(
               {
                 userSessionData: {
+                  sessionId: "id1",
                   userId: "user1",
                   accountId: "account1",
                   canConsumeShows: true,
                   canPublishShows: false,
+                  createdTimeMs: 1000,
+                  renewedTimeMs: 1000,
                 },
-                userSessionRenewedTimestamp: 1000,
               },
               GET_SESSION_ROW,
             ),
@@ -107,12 +109,14 @@ TEST_RUNNER.run({
             eqMessage(
               {
                 userSessionData: {
+                  sessionId: "id1",
                   userId: "user1",
                   accountId: "account1",
                   canConsumeShows: false,
                   canPublishShows: true,
+                  createdTimeMs: 1000,
+                  renewedTimeMs: 1000,
                 },
-                userSessionRenewedTimestamp: 1000,
               },
               GET_SESSION_ROW,
             ),
