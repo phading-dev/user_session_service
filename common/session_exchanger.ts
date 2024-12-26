@@ -1,6 +1,6 @@
 import EventEmitter from "events";
 import { UserSession } from "../db/schema";
-import { deleteExpiredSessionStatement, getSession } from "../db/sql";
+import { deleteExpiredSessionStatement, getUserSession } from "../db/sql";
 import { SESSION_LONGEVITY_MS } from "./params";
 import { SessionExtractor } from "./session_signer";
 import { SPANNER_DATABASE } from "./spanner_client";
@@ -42,7 +42,7 @@ export class SessionExchanger extends EventEmitter {
       loggingPrefix,
       body.signedSession,
     );
-    let rows = await getSession(this.database, sessionId);
+    let rows = await getUserSession(this.database, sessionId);
     if (rows.length === 0) {
       throw newUnauthorizedError(`Session not found.`);
     }

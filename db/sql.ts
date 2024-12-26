@@ -38,6 +38,41 @@ export function insertUserSessionInternalStatement(
   };
 }
 
+export interface GetUserSessionRow {
+  userSessionData: UserSession,
+}
+
+export let GET_USER_SESSION_ROW: MessageDescriptor<GetUserSessionRow> = {
+  name: 'GetUserSessionRow',
+  fields: [{
+    name: 'userSessionData',
+    index: 1,
+    messageType: USER_SESSION,
+  }],
+};
+
+export async function getUserSession(
+  runner: Database | Transaction,
+  userSessionSessionIdEq: string,
+): Promise<Array<GetUserSessionRow>> {
+  let [rows] = await runner.run({
+    sql: "SELECT UserSession.data FROM UserSession WHERE (UserSession.sessionId = @userSessionSessionIdEq)",
+    params: {
+      userSessionSessionIdEq: userSessionSessionIdEq,
+    },
+    types: {
+      userSessionSessionIdEq: { type: "string" },
+    }
+  });
+  let resRows = new Array<GetUserSessionRow>();
+  for (let row of rows) {
+    resRows.push({
+      userSessionData: deserializeMessage(row.at(0).value, USER_SESSION),
+    });
+  }
+  return resRows;
+}
+
 export function updateUserSessionStatement(
   data: UserSession,
 ): Statement {
@@ -72,7 +107,7 @@ export function updateUserSessionInternalStatement(
   };
 }
 
-export function deleteSessionStatement(
+export function deleteUserSessionStatement(
   userSessionSessionIdEq: string,
 ): Statement {
   return {
@@ -98,39 +133,4 @@ export function deleteExpiredSessionStatement(
       userSessionRenewedTimeMsLt: { type: "float64" },
     }
   };
-}
-
-export interface GetSessionRow {
-  userSessionData: UserSession,
-}
-
-export let GET_SESSION_ROW: MessageDescriptor<GetSessionRow> = {
-  name: 'GetSessionRow',
-  fields: [{
-    name: 'userSessionData',
-    index: 1,
-    messageType: USER_SESSION,
-  }],
-};
-
-export async function getSession(
-  runner: Database | Transaction,
-  userSessionSessionIdEq: string,
-): Promise<Array<GetSessionRow>> {
-  let [rows] = await runner.run({
-    sql: "SELECT UserSession.data FROM UserSession WHERE UserSession.sessionId = @userSessionSessionIdEq",
-    params: {
-      userSessionSessionIdEq: userSessionSessionIdEq,
-    },
-    types: {
-      userSessionSessionIdEq: { type: "string" },
-    }
-  });
-  let resRows = new Array<GetSessionRow>();
-  for (let row of rows) {
-    resRows.push({
-      userSessionData: deserializeMessage(row.at(0).value, USER_SESSION),
-    });
-  }
-  return resRows;
 }

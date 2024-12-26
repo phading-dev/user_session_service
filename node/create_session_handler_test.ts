@@ -1,6 +1,10 @@
 import { SessionBuilderMock } from "../common/session_signer_mock";
 import { SPANNER_DATABASE } from "../common/spanner_client";
-import { GET_SESSION_ROW, deleteSessionStatement, getSession } from "../db/sql";
+import {
+  GET_USER_SESSION_ROW,
+  deleteUserSessionStatement,
+  getUserSession,
+} from "../db/sql";
 import { CreateSessionHandler } from "./create_session_handler";
 import {
   AccountType,
@@ -45,7 +49,7 @@ TEST_RUNNER.run({
           "resposne",
         );
         assertThat(
-          await getSession(SPANNER_DATABASE, "id1"),
+          await getUserSession(SPANNER_DATABASE, "id1"),
           isArray([
             eqMessage(
               {
@@ -59,7 +63,7 @@ TEST_RUNNER.run({
                   renewedTimeMs: 1000,
                 },
               },
-              GET_SESSION_ROW,
+              GET_USER_SESSION_ROW,
             ),
           ]),
           "session",
@@ -67,7 +71,7 @@ TEST_RUNNER.run({
       },
       tearDown: async () => {
         await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
-          await transaction.batchUpdate([deleteSessionStatement("id1")]);
+          await transaction.batchUpdate([deleteUserSessionStatement("id1")]);
           await transaction.commit();
         });
       },
@@ -104,7 +108,7 @@ TEST_RUNNER.run({
           "resposne",
         );
         assertThat(
-          await getSession(SPANNER_DATABASE, "id1"),
+          await getUserSession(SPANNER_DATABASE, "id1"),
           isArray([
             eqMessage(
               {
@@ -118,7 +122,7 @@ TEST_RUNNER.run({
                   renewedTimeMs: 1000,
                 },
               },
-              GET_SESSION_ROW,
+              GET_USER_SESSION_ROW,
             ),
           ]),
           "session",
@@ -126,7 +130,7 @@ TEST_RUNNER.run({
       },
       tearDown: async () => {
         await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
-          await transaction.batchUpdate([deleteSessionStatement("id1")]);
+          await transaction.batchUpdate([deleteUserSessionStatement("id1")]);
           await transaction.commit();
         });
       },

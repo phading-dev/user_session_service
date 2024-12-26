@@ -1,7 +1,7 @@
 import { USER_SESSION } from "../db/schema";
 import {
-  deleteSessionStatement,
-  getSession,
+  deleteUserSessionStatement,
+  getUserSession,
   insertUserSessionStatement,
 } from "../db/sql";
 import { SESSION_LONGEVITY_MS } from "./params";
@@ -92,7 +92,9 @@ TEST_RUNNER.run({
       },
       tearDown: async () => {
         await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
-          await transaction.batchUpdate([deleteSessionStatement("session1")]);
+          await transaction.batchUpdate([
+            deleteUserSessionStatement("session1"),
+          ]);
           await transaction.commit();
         });
       },
@@ -171,14 +173,16 @@ TEST_RUNNER.run({
           "error",
         );
         assertThat(
-          (await getSession(SPANNER_DATABASE, "session1")).length,
+          (await getUserSession(SPANNER_DATABASE, "session1")).length,
           eq(0),
           "session deleted",
         );
       },
       tearDown: async () => {
         await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
-          await transaction.batchUpdate([deleteSessionStatement("session1")]);
+          await transaction.batchUpdate([
+            deleteUserSessionStatement("session1"),
+          ]);
           await transaction.commit();
         });
       },

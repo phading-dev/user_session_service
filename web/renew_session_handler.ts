@@ -1,7 +1,7 @@
 import { SESSION_LONGEVITY_MS } from "../common/params";
 import { SessionExtractor } from "../common/session_signer";
 import { SPANNER_DATABASE } from "../common/spanner_client";
-import { getSession, updateUserSessionStatement } from "../db/sql";
+import { getUserSession, updateUserSessionStatement } from "../db/sql";
 import { Database } from "@google-cloud/spanner";
 import { RenewSessionHandlerInterface } from "@phading/user_session_service_interface/web/handler";
 import {
@@ -37,7 +37,7 @@ export class RenewSessionHandler extends RenewSessionHandlerInterface {
       sessionStr,
     );
     await this.database.runTransactionAsync(async (transaction) => {
-      let rows = await getSession(transaction, sessionId);
+      let rows = await getUserSession(transaction, sessionId);
       if (rows.length === 0) {
         throw newNotFoundError(`Session not found.`);
       }

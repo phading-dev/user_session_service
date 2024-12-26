@@ -2,9 +2,9 @@ import { SESSION_LONGEVITY_MS } from "../common/params";
 import { SessionExtractorMock } from "../common/session_signer_mock";
 import { SPANNER_DATABASE } from "../common/spanner_client";
 import {
-  GET_SESSION_ROW,
-  deleteSessionStatement,
-  getSession,
+  GET_USER_SESSION_ROW,
+  deleteUserSessionStatement,
+  getUserSession,
   insertUserSessionStatement,
 } from "../db/sql";
 import { RenewSessionHandler } from "./renew_session_handler";
@@ -48,7 +48,7 @@ TEST_RUNNER.run({
 
         // Verify
         assertThat(
-          await getSession(SPANNER_DATABASE, "session1"),
+          await getUserSession(SPANNER_DATABASE, "session1"),
           isArray([
             eqMessage(
               {
@@ -62,7 +62,7 @@ TEST_RUNNER.run({
                   renewedTimeMs: 1000,
                 },
               },
-              GET_SESSION_ROW,
+              GET_USER_SESSION_ROW,
             ),
           ]),
           "session",
@@ -70,7 +70,9 @@ TEST_RUNNER.run({
       },
       tearDown: async () => {
         await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
-          await transaction.batchUpdate([deleteSessionStatement("session1")]);
+          await transaction.batchUpdate([
+            deleteUserSessionStatement("session1"),
+          ]);
           await transaction.commit();
         });
       },
@@ -140,7 +142,9 @@ TEST_RUNNER.run({
       },
       tearDown: async () => {
         await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
-          await transaction.batchUpdate([deleteSessionStatement("session1")]);
+          await transaction.batchUpdate([
+            deleteUserSessionStatement("session1"),
+          ]);
           await transaction.commit();
         });
       },

@@ -42,9 +42,10 @@
           columns:
             - accountId
       insertStatementName: InsertUserSession
+      getStatementName: GetUserSession
       updateStatementName: UpdateUserSession
   deletes:
-    - name: DeleteSession
+    - name: DeleteUserSession
       table: UserSession
       where:
         op: =
@@ -54,13 +55,5 @@
       where:
         op: <
         leftColumn: renewedTimeMs
-  selects:
-    - name: GetSession
-      table: UserSession
-      where:
-        op: =
-        leftColumn: sessionId
-      getColumns:
-        - data
   outputDdl: ./db/ddl
   outputSql: ./db/sql
