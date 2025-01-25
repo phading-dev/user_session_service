@@ -21,8 +21,7 @@ export class CheckCapabilityHandler extends CheckCapabilityHandlerInterface {
   ): Promise<CheckCapabilityResponse> {
     return this.sessionExchanger.exchange(loggingPrefix, {
       signedSession: sessionStr,
-      checkCanConsumeShows: body.checkCanConsumeShows,
-      checkCanPublishShows: body.checkCanPublishShows,
+      capabilitiesMask: body.capabilitiesMask,
     });
   }
 }

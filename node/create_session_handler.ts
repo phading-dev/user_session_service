@@ -5,7 +5,6 @@ import { insertUserSessionStatement } from "../db/sql";
 import { Database } from "@google-cloud/spanner";
 import { CreateSessionHandlerInterface } from "@phading/user_session_service_interface/node/handler";
 import {
-  AccountType,
   CreateSessionRequestBody,
   CreateSessionResponse,
 } from "@phading/user_session_service_interface/node/interface";
@@ -34,8 +33,6 @@ export class CreateSessionHandler extends CreateSessionHandlerInterface {
     body: CreateSessionRequestBody,
   ): Promise<CreateSessionResponse> {
     let sessionId = this.generateUuid();
-    let canPublishShows = body.accountType === AccountType.PUBLISHER;
-    let canConsumeShows = body.accountType === AccountType.CONSUMER;
     await this.database.runTransactionAsync(async (transaction) => {
       let now = this.getNow();
       await transaction.batchUpdate([
@@ -43,8 +40,8 @@ export class CreateSessionHandler extends CreateSessionHandlerInterface {
           sessionId,
           userId: body.userId,
           accountId: body.accountId,
-          canConsumeShows,
-          canPublishShows,
+          version: body.version,
+          capabilities: body.capabilities,
           createdTimeMs: now,
           renewedTimeMs: now,
         }),

@@ -5,12 +5,12 @@ import { SESSION_LONGEVITY_MS } from "./params";
 import { SessionExtractor } from "./session_signer";
 import { SPANNER_DATABASE } from "./spanner_client";
 import { Database } from "@google-cloud/spanner";
+import { CapabilitiesMask } from "@phading/user_session_service_interface/capabilities";
 import { newUnauthorizedError } from "@selfage/http_error";
 
 export interface RequestBody {
   signedSession?: string;
-  checkCanConsumeShows?: boolean;
-  checkCanPublishShows?: boolean;
+  capabilitiesMask?: CapabilitiesMask;
 }
 
 export interface SessionExchanger {
@@ -53,12 +53,19 @@ export class SessionExchanger extends EventEmitter {
       this.cleanUpExpiredSession(validTimestamp);
       throw newUnauthorizedError(`Session expired.`);
     }
-    if (!body.checkCanConsumeShows) {
-      userSessionData.canConsumeShows = undefined;
+    if (!body.capabilitiesMask.checkCanConsumeShows) {
+      userSessionData.capabilities.canConsumeShows = undefined;
     }
-    if (!body.checkCanPublishShows) {
-      userSessionData.canPublishShows = undefined;
+    if (!body.capabilitiesMask.checkCanPublishShows) {
+      userSessionData.capabilities.canPublishShows = undefined;
     }
+    if (!body.capabilitiesMask.checkCanBeBilled) {
+      userSessionData.capabilities.canBeBilled = undefined;
+    }
+    if (!body.capabilitiesMask.checkCanEarn) {
+      userSessionData.capabilities.canEarn = undefined;
+    }
+    userSessionData.version = undefined;
     userSessionData.createdTimeMs = undefined;
     userSessionData.renewedTimeMs = undefined;
     return userSessionData;

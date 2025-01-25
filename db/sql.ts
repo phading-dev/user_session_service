@@ -134,3 +134,38 @@ export function deleteExpiredSessionStatement(
     }
   };
 }
+
+export interface ListSessionsByAccountIdRow {
+  userSessionData: UserSession,
+}
+
+export let LIST_SESSIONS_BY_ACCOUNT_ID_ROW: MessageDescriptor<ListSessionsByAccountIdRow> = {
+  name: 'ListSessionsByAccountIdRow',
+  fields: [{
+    name: 'userSessionData',
+    index: 1,
+    messageType: USER_SESSION,
+  }],
+};
+
+export async function listSessionsByAccountId(
+  runner: Database | Transaction,
+  userSessionAccountIdEq: string,
+): Promise<Array<ListSessionsByAccountIdRow>> {
+  let [rows] = await runner.run({
+    sql: "SELECT UserSession.data FROM UserSession WHERE UserSession.accountId = @userSessionAccountIdEq",
+    params: {
+      userSessionAccountIdEq: userSessionAccountIdEq,
+    },
+    types: {
+      userSessionAccountIdEq: { type: "string" },
+    }
+  });
+  let resRows = new Array<ListSessionsByAccountIdRow>();
+  for (let row of rows) {
+    resRows.push({
+      userSessionData: deserializeMessage(row.at(0).value, USER_SESSION),
+    });
+  }
+  return resRows;
+}

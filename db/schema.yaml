@@ -10,11 +10,12 @@
     - name: accountId
       type: string
       index: 3
-    - name: canPublishShows
-      type: boolean
+    - name: version
+      type: number
       index: 4
-    - name: canConsumeShows
-      type: boolean
+    - name: capabilities
+      type: Capabilities
+      import: "@phading/user_session_service_interface/capabilities"
       index: 5
     - name: createdTimeMs
       type: number
@@ -55,5 +56,13 @@
       where:
         op: <
         leftColumn: renewedTimeMs
+  selects:
+    - name: ListSessionsByAccountId
+      table: UserSession
+      where:
+        op: =
+        leftColumn: accountId
+      getColumns:
+        - data
   outputDdl: ./db/ddl
   outputSql: ./db/sql

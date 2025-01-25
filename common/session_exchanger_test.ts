@@ -18,7 +18,7 @@ TEST_RUNNER.run({
   name: "SessionExchangerTest",
   cases: [
     {
-      name: "CheckCanConsume_CheckCanPublish",
+      name: "CheckCanConsume_CheckCanPublish_CheckCanBeBilled_CheckCanEarn",
       execute: async () => {
         // Prepare
         await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
@@ -27,8 +27,12 @@ TEST_RUNNER.run({
               sessionId: "session1",
               userId: "user1",
               accountId: "account1",
-              canConsumeShows: false,
-              canPublishShows: false,
+              capabilities: {
+                canConsumeShows: false,
+                canPublishShows: false,
+                canBeBilled: false,
+                canEarn: false,
+              },
               createdTimeMs: 100,
               renewedTimeMs: 400,
             }),
@@ -46,7 +50,9 @@ TEST_RUNNER.run({
         // Execute
         let response = await exchanger.exchange("", {
           signedSession: "signed1",
-          checkCanConsumeShows: true,
+          capabilitiesMask: {
+            checkCanConsumeShows: true,
+          },
         });
 
         // Verify
@@ -62,7 +68,9 @@ TEST_RUNNER.run({
               sessionId: "session1",
               userId: "user1",
               accountId: "account1",
-              canConsumeShows: false,
+              capabilities: {
+                canConsumeShows: false,
+              },
             },
             USER_SESSION,
           ),
@@ -72,7 +80,9 @@ TEST_RUNNER.run({
         // Execute
         response = await exchanger.exchange("", {
           signedSession: "signed1",
-          checkCanPublishShows: true,
+          capabilitiesMask: {
+            checkCanPublishShows: true,
+          },
         });
 
         // Verify
@@ -83,11 +93,63 @@ TEST_RUNNER.run({
               sessionId: "session1",
               userId: "user1",
               accountId: "account1",
-              canPublishShows: false,
+              capabilities: {
+                canPublishShows: false,
+              },
             },
             USER_SESSION,
           ),
           "response 2",
+        );
+
+        // Execute
+        response = await exchanger.exchange("", {
+          signedSession: "signed1",
+          capabilitiesMask: {
+            checkCanBeBilled: true,
+          },
+        });
+
+        // Verify
+        assertThat(
+          response,
+          eqMessage(
+            {
+              sessionId: "session1",
+              userId: "user1",
+              accountId: "account1",
+              capabilities: {
+                canBeBilled: false,
+              },
+            },
+            USER_SESSION,
+          ),
+          "response 3",
+        );
+
+        // Execute
+        response = await exchanger.exchange("", {
+          signedSession: "signed1",
+          capabilitiesMask: {
+            checkCanEarn: true,
+          },
+        });
+
+        // Verify
+        assertThat(
+          response,
+          eqMessage(
+            {
+              sessionId: "session1",
+              userId: "user1",
+              accountId: "account1",
+              capabilities: {
+                canEarn: false,
+              },
+            },
+            USER_SESSION,
+          ),
+          "response 4",
         );
       },
       tearDown: async () => {
@@ -115,7 +177,9 @@ TEST_RUNNER.run({
         let error = await assertReject(
           exchanger.exchange("", {
             signedSession: "signed1",
-            checkCanConsumeShows: true,
+            capabilitiesMask: {
+              checkCanConsumeShows: true,
+            },
           }),
         );
 
@@ -138,8 +202,9 @@ TEST_RUNNER.run({
               sessionId: "session1",
               userId: "user1",
               accountId: "account1",
-              canConsumeShows: false,
-              canPublishShows: false,
+              capabilities: {
+                canConsumeShows: true,
+              },
               createdTimeMs: 100,
               renewedTimeMs: 400,
             }),
@@ -161,7 +226,9 @@ TEST_RUNNER.run({
         let error = await assertReject(
           exchanger.exchange("", {
             signedSession: "signed1",
-            checkCanConsumeShows: true,
+            capabilitiesMask: {
+              checkCanConsumeShows: true,
+            },
           }),
         );
         await cleanedUpPromise;
