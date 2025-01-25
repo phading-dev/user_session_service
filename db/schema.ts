@@ -5,7 +5,7 @@ export interface UserSession {
   sessionId?: string,
   userId?: string,
   accountId?: string,
-  version?: number,
+  capabilitiesVersion?: number,
   capabilities?: Capabilities,
   createdTimeMs?: number,
   renewedTimeMs?: number,
@@ -26,7 +26,7 @@ export let USER_SESSION: MessageDescriptor<UserSession> = {
     index: 3,
     primitiveType: PrimitiveType.STRING,
   }, {
-    name: 'version',
+    name: 'capabilitiesVersion',
     index: 4,
     primitiveType: PrimitiveType.NUMBER,
   }, {

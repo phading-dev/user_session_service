@@ -40,7 +40,7 @@ export class CreateSessionHandler extends CreateSessionHandlerInterface {
           sessionId,
           userId: body.userId,
           accountId: body.accountId,
-          version: body.version,
+          capabilitiesVersion: body.capabilitiesVersion,
           capabilities: body.capabilities,
           createdTimeMs: now,
           renewedTimeMs: now,

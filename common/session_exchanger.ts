@@ -65,7 +65,7 @@ export class SessionExchanger extends EventEmitter {
     if (!body.capabilitiesMask.checkCanEarn) {
       userSessionData.capabilities.canEarn = undefined;
     }
-    userSessionData.version = undefined;
+    userSessionData.capabilitiesVersion = undefined;
     userSessionData.createdTimeMs = undefined;
     userSessionData.renewedTimeMs = undefined;
     return userSessionData;

@@ -31,7 +31,7 @@ TEST_RUNNER.run({
         let response = await handler.handle("", {
           userId: "user1",
           accountId: "account1",
-          version: 1,
+          capabilitiesVersion: 1,
           capabilities: {
             canConsumeShows: true,
             canPublishShows: false,
@@ -58,7 +58,7 @@ TEST_RUNNER.run({
                   sessionId: "id1",
                   userId: "user1",
                   accountId: "account1",
-                  version: 1,
+                  capabilitiesVersion: 1,
                   capabilities: {
                     canConsumeShows: true,
                     canPublishShows: false,

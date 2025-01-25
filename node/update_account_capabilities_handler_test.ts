@@ -5,13 +5,13 @@ import {
   getUserSession,
   insertUserSessionStatement,
 } from "../db/sql";
-import { UpdateCapabilitiesHandler } from "./update_capabilities_handler";
+import { UpdateAccountCapabilitiesHandler } from "./update_account_capabilities_handler";
 import { eqMessage } from "@selfage/message/test_matcher";
 import { assertThat, isArray } from "@selfage/test_matcher";
 import { TEST_RUNNER } from "@selfage/test_runner";
 
 TEST_RUNNER.run({
-  name: "UpdateCapabilitiesHandlerTest",
+  name: "UpdateAccountCapabilitiesHandlerTest",
   cases: [
     {
       name: "UpdateOneSession",
@@ -23,7 +23,7 @@ TEST_RUNNER.run({
               sessionId: "session1",
               accountId: "account1",
               renewedTimeMs: 1000,
-              version: 1,
+              capabilitiesVersion: 1,
               capabilities: {
                 canConsumeShows: true,
               },
@@ -31,12 +31,12 @@ TEST_RUNNER.run({
           ]);
           await transaction.commit();
         });
-        let handler = new UpdateCapabilitiesHandler(SPANNER_DATABASE);
+        let handler = new UpdateAccountCapabilitiesHandler(SPANNER_DATABASE);
 
         // Execute
         await handler.handle("test", {
           accountId: "account1",
-          version: 2,
+          capabilitiesVersion: 2,
           capabilities: {
             canConsumeShows: false,
           },
@@ -52,7 +52,7 @@ TEST_RUNNER.run({
                   sessionId: "session1",
                   accountId: "account1",
                   renewedTimeMs: 1000,
-                  version: 2,
+                  capabilitiesVersion: 2,
                   capabilities: {
                     canConsumeShows: false,
                   },
@@ -83,7 +83,7 @@ TEST_RUNNER.run({
               sessionId: "session1",
               accountId: "account1",
               renewedTimeMs: 1000,
-              version: 1,
+              capabilitiesVersion: 1,
               capabilities: {
                 canConsumeShows: true,
               },
@@ -92,7 +92,7 @@ TEST_RUNNER.run({
               sessionId: "session2",
               accountId: "account1",
               renewedTimeMs: 1000,
-              version: 2,
+              capabilitiesVersion: 2,
               capabilities: {
                 canConsumeShows: true,
               },
@@ -101,7 +101,7 @@ TEST_RUNNER.run({
               sessionId: "session3",
               accountId: "account1",
               renewedTimeMs: 1000,
-              version: 1,
+              capabilitiesVersion: 1,
               capabilities: {
                 canConsumeShows: true,
               },
@@ -109,12 +109,12 @@ TEST_RUNNER.run({
           ]);
           await transaction.commit();
         });
-        let handler = new UpdateCapabilitiesHandler(SPANNER_DATABASE);
+        let handler = new UpdateAccountCapabilitiesHandler(SPANNER_DATABASE);
 
         // Execute
         await handler.handle("test", {
           accountId: "account1",
-          version: 2,
+          capabilitiesVersion: 2,
           capabilities: {
             canConsumeShows: false,
           },
@@ -130,7 +130,7 @@ TEST_RUNNER.run({
                   sessionId: "session1",
                   accountId: "account1",
                   renewedTimeMs: 1000,
-                  version: 2,
+                  capabilitiesVersion: 2,
                   capabilities: {
                     canConsumeShows: false,
                   },
@@ -150,7 +150,7 @@ TEST_RUNNER.run({
                   sessionId: "session2",
                   accountId: "account1",
                   renewedTimeMs: 1000,
-                  version: 2,
+                  capabilitiesVersion: 2,
                   capabilities: {
                     canConsumeShows: true,
                   },
@@ -170,7 +170,7 @@ TEST_RUNNER.run({
                   sessionId: "session3",
                   accountId: "account1",
                   renewedTimeMs: 1000,
-                  version: 2,
+                  capabilitiesVersion: 2,
                   capabilities: {
                     canConsumeShows: false,
                   },
@@ -203,7 +203,7 @@ TEST_RUNNER.run({
               sessionId: "session1",
               accountId: "account1",
               renewedTimeMs: 1000,
-              version: 3,
+              capabilitiesVersion: 3,
               capabilities: {
                 canConsumeShows: true,
               },
@@ -211,12 +211,12 @@ TEST_RUNNER.run({
           ]);
           await transaction.commit();
         });
-        let handler = new UpdateCapabilitiesHandler(SPANNER_DATABASE);
+        let handler = new UpdateAccountCapabilitiesHandler(SPANNER_DATABASE);
 
         // Execute
         await handler.handle("test", {
           accountId: "account1",
-          version: 2,
+          capabilitiesVersion: 2,
           capabilities: {
             canConsumeShows: false,
           },
@@ -232,7 +232,7 @@ TEST_RUNNER.run({
                   sessionId: "session1",
                   accountId: "account1",
                   renewedTimeMs: 1000,
-                  version: 3,
+                  capabilitiesVersion: 3,
                   capabilities: {
                     canConsumeShows: true,
                   },
