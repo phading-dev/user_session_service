@@ -6,17 +6,12 @@
     "type": "git",
     "url": "git+https://github.com/phading-dev/user_session_servicce.git"
   },
-  "author": "Yuxuan Xie <teststaybaka@gmail.com> (http://www.yuxuanxie.com)",
+  "author": "Yuxuan Xie <ykuyo.dev@gmail.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/phading-dev/user_session_servicce/issues"
   },
   "homepage": "https://github.com/phading-dev/user_session_servicce#readme",
-  "files": [
-    "**/*.d.ts",
-    "**/*.js",
-    "**/*.json"
-  ],
   "devDependencies": {
     "@selfage/cli": "^5.0.1",
     "@selfage/generator_cli": "^4.0.4",
