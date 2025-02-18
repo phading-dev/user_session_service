@@ -1,6 +1,7 @@
 #!/bin/bash
 # GCP auth
 gcloud auth application-default login
+gcloud config set project phading-dev
 
 # Create service account
 gcloud iam service-accounts create user-session-service-builder

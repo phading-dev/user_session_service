@@ -6,6 +6,7 @@ function main() {
   let turnupTemplate = `#!/bin/bash
 # GCP auth
 gcloud auth application-default login
+gcloud config set project ${globalThis.PROJECT_ID}
 
 # Create service account
 gcloud iam service-accounts create ${globalThis.BUILDER_ACCOUNT}

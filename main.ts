@@ -12,7 +12,7 @@ import {
   USER_SESSION_WEB_SERVICE,
 } from "@phading/user_session_service_interface/service";
 import { ServiceHandler } from "@selfage/service_handler/service_handler";
-import "../environment";
+import "./environment";
 
 async function main() {
   let [sessionSecretKey] = await Promise.all([
