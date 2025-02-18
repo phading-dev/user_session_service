@@ -24,7 +24,7 @@ kubectl create serviceaccount ${globalThis.SERVICE_ACCOUNT} --namespace default
 
 # Grant database permissions to the service account
 gcloud projects add-iam-policy-binding ${globalThis.PROJECT_ID} --member=principal://iam.googleapis.com/projects/${globalThis.PROJECT_NUMBER}/locations/global/workloadIdentityPools/${globalThis.PROJECT_ID}.svc.id.goog/subject/ns/default/sa/${globalThis.SERVICE_ACCOUNT} --role=roles/spanner.databaseUser --condition=None
-gcloud projects add-iam-policy-binding ${globalThis.PROJECT_ID} --member=principal://iam.googleapis.com/projects/${globalThis.PROJECT_NUMBER}/locations/global/workloadIdentityPools/${globalThis.PROJECT_ID}.svc.id.goog/subject/ns/default/sa/${globalThis.SERVICE_ACCOUNT} --role=roles/spanner.databaseUser --condition=None
+gcloud projects add-iam-policy-binding ${globalThis.PROJECT_ID} --member=principal://iam.googleapis.com/projects/${globalThis.PROJECT_NUMBER}/locations/global/workloadIdentityPools/${globalThis.PROJECT_ID}.svc.id.goog/subject/ns/default/sa/${globalThis.SERVICE_ACCOUNT} --role=roles/storage.objectUser --condition=None
 
 # Create Spanner database
 gcloud spanner databases create ${globalThis.DATABASE_ID} --instance=${globalThis.DATABASE_INSTANCE_ID}

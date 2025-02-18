@@ -19,7 +19,7 @@ kubectl create serviceaccount user-session-service-account --namespace default
 
 # Grant database permissions to the service account
 gcloud projects add-iam-policy-binding phading-dev --member=principal://iam.googleapis.com/projects/178489203789/locations/global/workloadIdentityPools/phading-dev.svc.id.goog/subject/ns/default/sa/user-session-service-account --role=roles/spanner.databaseUser --condition=None
-gcloud projects add-iam-policy-binding phading-dev --member=principal://iam.googleapis.com/projects/178489203789/locations/global/workloadIdentityPools/phading-dev.svc.id.goog/subject/ns/default/sa/user-session-service-account --role=roles/spanner.databaseUser --condition=None
+gcloud projects add-iam-policy-binding phading-dev --member=principal://iam.googleapis.com/projects/178489203789/locations/global/workloadIdentityPools/phading-dev.svc.id.goog/subject/ns/default/sa/user-session-service-account --role=roles/storage.objectUser --condition=None
 
 # Create Spanner database
 gcloud spanner databases create user-session-db --instance=high-read-db-instance
