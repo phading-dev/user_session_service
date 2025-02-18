@@ -42,9 +42,9 @@
         - name: ByAccountId
           columns:
             - accountId
-      insertStatementName: InsertUserSession
-      getStatementName: GetUserSession
-      updateStatementName: UpdateUserSession
+      insert: InsertUserSession
+      get: GetUserSession
+      update: UpdateUserSession
   deletes:
     - name: DeleteUserSession
       table: UserSession

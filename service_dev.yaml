@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-session-service-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: user-session-service-pod
+  template:
+    metadata:
+      labels:
+        app: user-session-service-pod
+    spec:
+      serviceAccountName: user-session-service-account
+      containers:
+      - name: user-session-service-container
+        image: gcr.io/phading-dev/user-session-service:latest
+        ports:
+        - containerPort: 8080
+---
+apiVersion: monitoring.googleapis.com/v1
+kind: PodMonitoring
+metadata:
+  name: user-session-service-monitoring
+spec:
+  selector:
+    matchLabels:
+      app: user-session-service-pod
+  endpoints:
+  - port: 8080
+    path: /metricsz
+    interval: 30s
+---
+apiVersion: cloud.google.com/v1
+kind: BackendConfig
+metadata:
+  name: user-session-service-neg-health-check
+spec:
+  healthCheck:
+    port: 8080
+    type: HTTP
+    requestPath: /healthz
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-session-service
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}'
+    beta.cloud.google.com/backend-config: '{"default": "user-session-service-neg-health-check"}'
+spec:
+  selector:
+    app: user-session-service-pod
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP
