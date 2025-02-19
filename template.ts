@@ -1,33 +1,37 @@
+import { ENV_VARS } from "./env";
+import {
+  K8S_SERVICE_NAME,
+  K8S_SERVICE_PORT,
+} from "@phading/user_session_service_interface/service_const";
 import { writeFileSync } from "fs";
-import "./environment";
 
 function main() {
   let env = process.argv[2];
   let turnupTemplate = `#!/bin/bash
 # GCP auth
 gcloud auth application-default login
-gcloud config set project ${globalThis.PROJECT_ID}
+gcloud config set project ${ENV_VARS.projectId}
 
 # Create service account
-gcloud iam service-accounts create ${globalThis.BUILDER_ACCOUNT}
+gcloud iam service-accounts create ${ENV_VARS.builderAccount}
 
 # Grant permissions to the service account
-gcloud projects add-iam-policy-binding ${globalThis.PROJECT_ID} --member="serviceAccount:${globalThis.BUILDER_ACCOUNT}@${globalThis.PROJECT_ID}.iam.gserviceaccount.com" --role='roles/cloudbuild.builds.builder' --condition=None
-gcloud projects add-iam-policy-binding ${globalThis.PROJECT_ID} --member="serviceAccount:${globalThis.BUILDER_ACCOUNT}@${globalThis.PROJECT_ID}.iam.gserviceaccount.com" --role='roles/container.developer' --condition=None
-gcloud projects add-iam-policy-binding ${globalThis.PROJECT_ID} --member="serviceAccount:${globalThis.BUILDER_ACCOUNT}@${globalThis.PROJECT_ID}.iam.gserviceaccount.com" --role='roles/spanner.databaseAdmin' --condition=None
+gcloud projects add-iam-policy-binding ${ENV_VARS.projectId} --member="serviceAccount:${ENV_VARS.builderAccount}@${ENV_VARS.projectId}.iam.gserviceaccount.com" --role='roles/cloudbuild.builds.builder' --condition=None
+gcloud projects add-iam-policy-binding ${ENV_VARS.projectId} --member="serviceAccount:${ENV_VARS.builderAccount}@${ENV_VARS.projectId}.iam.gserviceaccount.com" --role='roles/container.developer' --condition=None
+gcloud projects add-iam-policy-binding ${ENV_VARS.projectId} --member="serviceAccount:${ENV_VARS.builderAccount}@${ENV_VARS.projectId}.iam.gserviceaccount.com" --role='roles/spanner.databaseAdmin' --condition=None
 
 # Set k8s cluster
-gcloud container clusters get-credentials ${globalThis.CLUSTER_NAME} --location=${globalThis.CLUSTER_REGION}
+gcloud container clusters get-credentials ${ENV_VARS.clusterName} --location=${ENV_VARS.clusterRegion}
 
 # Create the service account
-kubectl create serviceaccount ${globalThis.SERVICE_ACCOUNT} --namespace default
+kubectl create serviceaccount ${ENV_VARS.serviceAccount} --namespace default
 
 # Grant database permissions to the service account
-gcloud projects add-iam-policy-binding ${globalThis.PROJECT_ID} --member=principal://iam.googleapis.com/projects/${globalThis.PROJECT_NUMBER}/locations/global/workloadIdentityPools/${globalThis.PROJECT_ID}.svc.id.goog/subject/ns/default/sa/${globalThis.SERVICE_ACCOUNT} --role=roles/spanner.databaseUser --condition=None
-gcloud projects add-iam-policy-binding ${globalThis.PROJECT_ID} --member=principal://iam.googleapis.com/projects/${globalThis.PROJECT_NUMBER}/locations/global/workloadIdentityPools/${globalThis.PROJECT_ID}.svc.id.goog/subject/ns/default/sa/${globalThis.SERVICE_ACCOUNT} --role=roles/storage.objectUser --condition=None
+gcloud projects add-iam-policy-binding ${ENV_VARS.projectId} --member=principal://iam.googleapis.com/projects/${ENV_VARS.projectNumber}/locations/global/workloadIdentityPools/${ENV_VARS.projectId}.svc.id.goog/subject/ns/default/sa/${ENV_VARS.serviceAccount} --role=roles/spanner.databaseUser --condition=None
+gcloud projects add-iam-policy-binding ${ENV_VARS.projectId} --member=principal://iam.googleapis.com/projects/${ENV_VARS.projectNumber}/locations/global/workloadIdentityPools/${ENV_VARS.projectId}.svc.id.goog/subject/ns/default/sa/${ENV_VARS.serviceAccount} --role=roles/storage.objectUser --condition=None
 
 # Create Spanner database
-gcloud spanner databases create ${globalThis.DATABASE_ID} --instance=${globalThis.DATABASE_INSTANCE_ID}
+gcloud spanner databases create ${ENV_VARS.databaseId} --instance=${ENV_VARS.databaseInstanceId}
 `;
   writeFileSync(`turnup_${env}.sh`, turnupTemplate);
 
@@ -37,24 +41,24 @@ gcloud spanner databases create ${globalThis.DATABASE_ID} --instance=${globalThi
   args: ['install']
 - name: 'node:20.12.1'
   entrypoint: 'npx'
-  args: ['spanage', 'update', 'db/ddl', '-p', '${globalThis.PROJECT_ID}', '-i', '${globalThis.DATABASE_INSTANCE_ID}', '-d', '${globalThis.DATABASE_ID}']
+  args: ['spanage', 'update', 'db/ddl', '-p', '${ENV_VARS.projectId}', '-i', '${ENV_VARS.databaseInstanceId}', '-d', '${ENV_VARS.databaseId}']
 - name: node:20.12.1
   entrypoint: npx
   args: ['bundage', 'bfn', 'main', 'main_bin', '-e', 'environment_${env}', '-t', 'bin']
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'gcr.io/${globalThis.PROJECT_ID}/${globalThis.SERVICE_NAME}:latest', '-f', 'Dockerfile_${env}', '.']
+  args: ['build', '-t', 'gcr.io/${ENV_VARS.projectId}/${ENV_VARS.releaseServiceName}:latest', '-f', 'Dockerfile_${env}', '.']
 - name: "gcr.io/cloud-builders/docker"
-  args: ['push', 'gcr.io/${globalThis.PROJECT_ID}/${globalThis.SERVICE_NAME}:latest']
+  args: ['push', 'gcr.io/${ENV_VARS.projectId}/${ENV_VARS.releaseServiceName}:latest']
 - name: 'gcr.io/cloud-builders/kubectl'
   args: ['apply', '-f', 'service_${env}.yaml']
   env:
-    - 'CLOUDSDK_CONTAINER_CLUSTER=${globalThis.CLUSTER_NAME}'
-    - 'CLOUDSDK_COMPUTE_REGION=${globalThis.CLUSTER_REGION}'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=${ENV_VARS.clusterName}'
+    - 'CLOUDSDK_COMPUTE_REGION=${ENV_VARS.clusterRegion}'
 - name: 'gcr.io/cloud-builders/kubectl'
-  args: ['rollout', 'restart', 'deployment', '${globalThis.SERVICE_NAME}-deployment']
+  args: ['rollout', 'restart', 'deployment', '${ENV_VARS.releaseServiceName}-deployment']
   env:
-    - 'CLOUDSDK_CONTAINER_CLUSTER=${globalThis.CLUSTER_NAME}'
-    - 'CLOUDSDK_COMPUTE_REGION=${globalThis.CLUSTER_REGION}'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=${ENV_VARS.clusterName}'
+    - 'CLOUDSDK_COMPUTE_REGION=${ENV_VARS.clusterRegion}'
 options:
   logging: CLOUD_LOGGING_ONLY
 `;
@@ -68,7 +72,7 @@ COPY package-lock.json .
 COPY bin/ .
 RUN npm install --production
 
-EXPOSE ${globalThis.PORT}
+EXPOSE ${ENV_VARS.port}
 CMD ["node", "main_bin"]
 `;
   writeFileSync(`Dockerfile_${env}`, dockerTemplate);
@@ -76,61 +80,61 @@ CMD ["node", "main_bin"]
   let serviceTemplate = `apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ${globalThis.SERVICE_NAME}-deployment
+  name: ${ENV_VARS.releaseServiceName}-deployment
 spec:
   replicas: 3
   selector:
     matchLabels:
-      app: ${globalThis.SERVICE_NAME}-pod
+      app: ${ENV_VARS.releaseServiceName}-pod
   template:
     metadata:
       labels:
-        app: ${globalThis.SERVICE_NAME}-pod
+        app: ${ENV_VARS.releaseServiceName}-pod
     spec:
-      serviceAccountName: ${globalThis.SERVICE_ACCOUNT}
+      serviceAccountName: ${ENV_VARS.serviceAccount}
       containers:
-      - name: ${globalThis.SERVICE_NAME}-container
-        image: gcr.io/phading-dev/${globalThis.SERVICE_NAME}:latest
+      - name: ${ENV_VARS.releaseServiceName}-container
+        image: gcr.io/phading-dev/${ENV_VARS.releaseServiceName}:latest
         ports:
-        - containerPort: ${globalThis.PORT}
+        - containerPort: ${ENV_VARS.port}
 ---
 apiVersion: monitoring.googleapis.com/v1
 kind: PodMonitoring
 metadata:
-  name: ${globalThis.SERVICE_NAME}-monitoring
+  name: ${ENV_VARS.releaseServiceName}-monitoring
 spec:
   selector:
     matchLabels:
-      app: ${globalThis.SERVICE_NAME}-pod
+      app: ${ENV_VARS.releaseServiceName}-pod
   endpoints:
-  - port: ${globalThis.PORT}
+  - port: ${ENV_VARS.port}
     path: /metricsz
     interval: 30s
 ---
 apiVersion: cloud.google.com/v1
 kind: BackendConfig
 metadata:
-  name: ${globalThis.SERVICE_NAME}-neg-health-check
+  name: ${ENV_VARS.releaseServiceName}-neg-health-check
 spec:
   healthCheck:
-    port: ${globalThis.PORT}
+    port: ${ENV_VARS.port}
     type: HTTP
     requestPath: /healthz
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: ${globalThis.SERVICE_NAME}
+  name: ${ENV_VARS.releaseServiceName}
   annotations:
     cloud.google.com/neg: '{"ingress": true}'
-    beta.cloud.google.com/backend-config: '{"default": "${globalThis.SERVICE_NAME}-neg-health-check"}'
+    beta.cloud.google.com/backend-config: '{"default": "${ENV_VARS.releaseServiceName}-neg-health-check"}'
 spec:
   selector:
-    app: ${globalThis.SERVICE_NAME}-pod
+    app: ${K8S_SERVICE_NAME}-pod
   ports:
     - protocol: TCP
-      port: 80
-      targetPort: ${globalThis.PORT}
+      port: ${K8S_SERVICE_PORT}
+      targetPort: ${ENV_VARS.port}
   type: ClusterIP
 `;
   writeFileSync(`service_${env}.yaml`, serviceTemplate);

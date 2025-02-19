@@ -1,8 +1,13 @@
+import { ENV_VARS } from "./env";
 import { spawnSync } from "child_process";
-import "./environment_local"
+import "./env_local";
 
 async function main() {
-  spawnSync("gcloud", ["spanner", "instances", "delete", globalThis.DATABASE_INSTANCE_ID, "--quiet"], { stdio: "inherit" });
+  spawnSync(
+    "gcloud",
+    ["spanner", "instances", "delete", ENV_VARS.databaseInstanceId, "--quiet"],
+    { stdio: "inherit" },
+  );
 }
 
 main();
