@@ -124,13 +124,13 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: ${ENV_VARS.releaseServiceName}
+  name: ${K8S_SERVICE_NAME}
   annotations:
     cloud.google.com/neg: '{"ingress": true}'
     beta.cloud.google.com/backend-config: '{"default": "${ENV_VARS.releaseServiceName}-neg-health-check"}'
 spec:
   selector:
-    app: ${K8S_SERVICE_NAME}-pod
+    app: ${ENV_VARS.releaseServiceName}-pod
   ports:
     - protocol: TCP
       port: ${K8S_SERVICE_PORT}
