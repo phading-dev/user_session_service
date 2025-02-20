@@ -6,6 +6,9 @@ async function main() {
   spawnSync("gcloud", ["auth", "application-default", "login"], {
     stdio: "inherit",
   });
+  spawnSync("gcloud", ["config", "set", "project", ENV_VARS.projectId], {
+    stdio: "inherit",
+  });
   spawnSync(
     "gcloud",
     [
