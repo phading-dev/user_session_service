@@ -1,6 +1,6 @@
 import { ENV_VARS } from "./env";
 
-ENV_VARS.databaseId = "user-session-db";
+ENV_VARS.spannerDatabaseId = "user-session-db";
 ENV_VARS.sessionSecretKeyFile = "session_secret.key";
 ENV_VARS.releaseServiceName = "user-session-service";
 ENV_VARS.port = 8080;
