@@ -1,3 +1,4 @@
+import "../local/env";
 import { USER_SESSION } from "../db/schema";
 import {
   deleteUserSessionStatement,

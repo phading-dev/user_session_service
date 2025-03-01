@@ -1,3 +1,4 @@
+import "../local/env";
 import { SESSION_LONGEVITY_MS } from "../common/params";
 import { SessionExtractorMock } from "../common/session_signer_mock";
 import { SPANNER_DATABASE } from "../common/spanner_client";

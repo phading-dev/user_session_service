@@ -1,3 +1,4 @@
+import "../local/env";
 import { SessionBuilderMock } from "../common/session_signer_mock";
 import { SPANNER_DATABASE } from "../common/spanner_client";
 import {

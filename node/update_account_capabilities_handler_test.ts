@@ -1,3 +1,4 @@
+import "../local/env";
 import { SPANNER_DATABASE } from "../common/spanner_client";
 import {
   GET_USER_SESSION_ROW,

@@ -2,7 +2,7 @@ import http = require("http");
 import getStream from "get-stream";
 import { SessionSigner } from "./common/session_signer";
 import { STORAGE_CLIENT } from "./common/storage_client";
-import { ENV_VARS } from "./env";
+import { ENV_VARS } from "./env_vars";
 import { CreateSessionHandler } from "./node/create_session_handler";
 import { ExchangeSessionAndCheckCapabilityHandler } from "./node/exchange_session_and_check_capability_handler";
 import { UpdateAccountCapabilitiesHandler } from "./node/update_account_capabilities_handler";

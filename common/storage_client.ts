@@ -1,6 +1,6 @@
 import { Storage } from "@google-cloud/storage";
-import { CLUSTER_ENV_VARS } from "@phading/cluster/env";
+import { ENV_VARS } from "../env_vars"; 
 
 export let STORAGE_CLIENT = new Storage({
-  projectId: CLUSTER_ENV_VARS.projectId,
+  projectId: ENV_VARS.projectId,
 });

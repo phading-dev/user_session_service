@@ -1,3 +1,4 @@
+import "../local/env";
 import { SessionBuilder, SessionExtractor } from "./session_signer";
 import { newUnauthorizedError } from "@selfage/http_error";
 import { assertThat, assertThrow, eq, eqError } from "@selfage/test_matcher";
