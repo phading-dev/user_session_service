@@ -31,6 +31,10 @@ gcloud projects add-iam-policy-binding ${ENV_VARS.projectId} --member=principal:
 
 # Create Spanner database
 gcloud spanner databases create ${ENV_VARS.spannerDatabaseId} --instance=${ENV_VARS.spannerInstanceId}
+
+# Create Bigtable table
+cbt -project ${ENV_VARS.projectId} -instance ${ENV_VARS.bigtableInstanceId} createtable ${ENV_VARS.bigtableTableId}
+cbt -project ${ENV_VARS.projectId} -instance ${ENV_VARS.bigtableInstanceId} createfamily ${ENV_VARS.bigtableTableId} u:maxversions=1
 `;
   writeFileSync(`${env}/turnup.sh`, turnupTemplate);
 

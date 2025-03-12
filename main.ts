@@ -4,7 +4,8 @@ import { SessionSigner } from "./common/session_signer";
 import { STORAGE_CLIENT } from "./common/storage_client";
 import { ENV_VARS } from "./env_vars";
 import { CreateSessionHandler } from "./node/create_session_handler";
-import { ExchangeSessionAndCheckCapabilityHandler } from "./node/exchange_session_and_check_capability_handler";
+import { DeleteExpiredSessionsHandler } from "./node/delete_expired_sessions_handler";
+import { FetchSessionAndCheckCapabilityHandler } from "./node/fetch_session_and_check_capability_handler";
 import { UpdateAccountCapabilitiesHandler } from "./node/update_account_capabilities_handler";
 import { CheckCapabilityHandler } from "./web/check_capability_handler";
 import { RenewSessionHandler } from "./web/renew_session_handler";
@@ -30,7 +31,8 @@ async function main() {
   service
     .addHandlerRegister(USER_SESSION_NODE_SERVICE)
     .add(CreateSessionHandler.create())
-    .add(ExchangeSessionAndCheckCapabilityHandler.create())
+    .add(DeleteExpiredSessionsHandler.create())
+    .add(FetchSessionAndCheckCapabilityHandler.create())
     .add(UpdateAccountCapabilitiesHandler.create());
   service
     .addHandlerRegister(USER_SESSION_WEB_SERVICE)

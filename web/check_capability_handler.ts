@@ -1,4 +1,4 @@
-import { SessionExchanger } from "../common/session_exchanger";
+import { SessionFetcher } from "../common/session_fetcher";
 import { CheckCapabilityHandlerInterface } from "@phading/user_session_service_interface/web/handler";
 import {
   CheckCapabilityRequestBody,
@@ -7,10 +7,10 @@ import {
 
 export class CheckCapabilityHandler extends CheckCapabilityHandlerInterface {
   public static create(): CheckCapabilityHandler {
-    return new CheckCapabilityHandler(SessionExchanger.create());
+    return new CheckCapabilityHandler(SessionFetcher.create());
   }
 
-  public constructor(private sessionExchanger: SessionExchanger) {
+  public constructor(private sessionFetcher: SessionFetcher) {
     super();
   }
 
@@ -19,7 +19,7 @@ export class CheckCapabilityHandler extends CheckCapabilityHandlerInterface {
     body: CheckCapabilityRequestBody,
     sessionStr: string,
   ): Promise<CheckCapabilityResponse> {
-    return this.sessionExchanger.exchange(loggingPrefix, {
+    return this.sessionFetcher.fetch(loggingPrefix, {
       signedSession: sessionStr,
       capabilitiesMask: body.capabilitiesMask,
     });

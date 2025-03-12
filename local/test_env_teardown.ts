@@ -8,6 +8,12 @@ async function main() {
     ["spanner", "instances", "delete", ENV_VARS.spannerInstanceId, "--quiet"],
     { stdio: "inherit" },
   );
+  spawnSync("cbt", [
+    "-project",
+    ENV_VARS.projectId,
+    "deleteinstance",
+    ENV_VARS.bigtableInstanceId,
+  ]);
 }
 
 main();

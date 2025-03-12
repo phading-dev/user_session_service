@@ -10,19 +10,12 @@
     - name: accountId
       type: string
       index: 3
-    - name: capabilitiesVersion
-      type: number
-      index: 4
-    - name: capabilities
-      type: Capabilities
-      import: "@phading/user_session_service_interface/capabilities"
-      index: 5
     - name: createdTimeMs
       type: number
-      index: 6
+      index: 4
     - name: renewedTimeMs
       type: number
-      index: 7
+      index: 5
 - kind: SpannerDatabase
   name: UserSessionDatabase
   tables:
@@ -31,6 +24,7 @@
       storedInColumn: data
       columns:
         - sessionId
+        - userId
         - accountId
         - renewedTimeMs
       primaryKeys:
@@ -42,16 +36,15 @@
         - name: ByAccountId
           columns:
             - accountId
+        - name: ByUserId
+          columns:
+            - userId
       insert: InsertUserSession
+      delete: DeleteUserSession
       get: GetUserSession
       update: UpdateUserSession
   deletes:
-    - name: DeleteUserSession
-      table: UserSession
-      where:
-        op: =
-        leftColumn: sessionId
-    - name: DeleteExpiredSession
+    - name: DeleteExpiredSessions
       table: UserSession
       where:
         op: <
@@ -63,6 +56,13 @@
         op: =
         leftColumn: accountId
       getColumns:
-        - data
+        - sessionId
+    - name: ListExpiredSessions
+      table: UserSession
+      where:
+        op: <
+        leftColumn: renewedTimeMs
+      getColumns:
+        - sessionId
   outputDdl: ./db/ddl
   outputSql: ./db/sql

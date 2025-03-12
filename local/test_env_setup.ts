@@ -49,6 +49,35 @@ async function main() {
     ],
     { stdio: "inherit" },
   );
+
+  spawnSync("cbt", [
+    "-project",
+    ENV_VARS.projectId,
+    "createinstance",
+    ENV_VARS.bigtableInstanceId,
+    "Test instance",
+    ENV_VARS.bigtableClusterId,
+    ENV_VARS.bigtableZone,
+    "1",
+    "SSD",
+  ]);
+  spawnSync("cbt", [
+    "-project",
+    ENV_VARS.projectId,
+    "-instance",
+    ENV_VARS.bigtableInstanceId,
+    "createtable",
+    ENV_VARS.bigtableTableId,
+  ]);
+  spawnSync("cbt", [
+    "-project",
+    ENV_VARS.projectId,
+    "-instance",
+    ENV_VARS.bigtableInstanceId,
+    "createfamily",
+    ENV_VARS.bigtableTableId,
+    "u:maxversions=1",
+  ]);
 }
 
 main();

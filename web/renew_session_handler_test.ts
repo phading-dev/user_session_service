@@ -1,5 +1,6 @@
 import "../local/env";
-import { SESSION_LONGEVITY_MS } from "../common/params";
+import { BIGTABLE } from "../common/bigtable_client";
+import { SESSION_LONGEVITY_MS } from "../common/constants";
 import { SessionExtractorMock } from "../common/session_signer_mock";
 import { SPANNER_DATABASE } from "../common/spanner_client";
 import {
@@ -9,11 +10,17 @@ import {
   insertUserSessionStatement,
 } from "../db/sql";
 import { RenewSessionHandler } from "./renew_session_handler";
-import { newNotFoundError, newUnauthorizedError } from "@selfage/http_error";
-import { eqHttpError } from "@selfage/http_error/test_matcher";
 import { eqMessage } from "@selfage/message/test_matcher";
-import { assertReject, assertThat, isArray } from "@selfage/test_matcher";
+import { assertThat, eq, isArray } from "@selfage/test_matcher";
 import { TEST_RUNNER } from "@selfage/test_runner";
+
+async function cleanupAll() {
+  await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
+    await transaction.batchUpdate([deleteUserSessionStatement("session1")]);
+    await transaction.commit();
+  });
+  await BIGTABLE.deleteRows(`u`);
+}
 
 TEST_RUNNER.run({
   name: "RenewSessionHandlerTest",
@@ -34,10 +41,21 @@ TEST_RUNNER.run({
           ]);
           await transaction.commit();
         });
+        await BIGTABLE.insert({
+          key: `u#session1`,
+          data: {
+            u: {
+              t: {
+                value: 100,
+              },
+            },
+          },
+        });
         let extractorMock = new SessionExtractorMock();
         extractorMock.sessionId = "session1";
         let handler = new RenewSessionHandler(
           SPANNER_DATABASE,
+          BIGTABLE,
           extractorMock,
           () => 1000,
         );
@@ -64,14 +82,14 @@ TEST_RUNNER.run({
           ]),
           "session",
         );
+        assertThat(
+          (await BIGTABLE.row("u#session1").get())[0].data["u"]["t"][0].value,
+          eq(1000),
+          "timestamp",
+        );
       },
       tearDown: async () => {
-        await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
-          await transaction.batchUpdate([
-            deleteUserSessionStatement("session1"),
-          ]);
-          await transaction.commit();
-        });
+        await cleanupAll();
       },
     },
     {
@@ -82,21 +100,70 @@ TEST_RUNNER.run({
         extractorMock.sessionId = "session1";
         let handler = new RenewSessionHandler(
           SPANNER_DATABASE,
+          BIGTABLE,
           extractorMock,
           () => 1000,
         );
 
         // Execute
-        let error = await assertReject(
-          handler.handle("", {}, "signed_session"),
-        );
+        await handler.handle("", {}, "signed_session");
 
         // Verify
         assertThat(
-          error,
-          eqHttpError(newNotFoundError("Session not found")),
-          "error",
+          (
+            await BIGTABLE.getRows({
+              keys: ["u#session1"],
+            })
+          )[0].length,
+          eq(0),
+          "no session",
         );
+      },
+      tearDown: async () => {
+        await cleanupAll();
+      },
+    },
+    {
+      name: "SessionNotPresentInBigtable",
+      execute: async () => {
+        // Prepare
+        await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
+          await transaction.batchUpdate([
+            insertUserSessionStatement({
+              sessionId: "session1",
+              userId: "user1",
+              accountId: "account1",
+              createdTimeMs: 100,
+              renewedTimeMs: 100,
+            }),
+          ]);
+          await transaction.commit();
+        });
+        let extractorMock = new SessionExtractorMock();
+        extractorMock.sessionId = "session1";
+        let handler = new RenewSessionHandler(
+          SPANNER_DATABASE,
+          BIGTABLE,
+          extractorMock,
+          () => 1000,
+        );
+
+        // Execute
+        await handler.handle("", {}, "signed_session");
+
+        // Verify
+        assertThat(
+          (
+            await BIGTABLE.getRows({
+              keys: ["u#session1"],
+            })
+          )[0].length,
+          eq(0),
+          "no session",
+        );
+      },
+      tearDown: async () => {
+        await cleanupAll();
       },
     },
     {
@@ -110,38 +177,60 @@ TEST_RUNNER.run({
               userId: "user1",
               accountId: "account1",
               createdTimeMs: 100,
-              renewedTimeMs: 400,
+              renewedTimeMs: 100,
             }),
           ]);
           await transaction.commit();
+        });
+        await BIGTABLE.insert({
+          key: `u#session1`,
+          data: {
+            u: {
+              t: {
+                value: 100,
+              },
+            },
+          },
         });
         let extractorMock = new SessionExtractorMock();
         extractorMock.sessionId = "session1";
         let handler = new RenewSessionHandler(
           SPANNER_DATABASE,
+          BIGTABLE,
           extractorMock,
-          () => 500 + SESSION_LONGEVITY_MS,
+          () => 1000 + SESSION_LONGEVITY_MS,
         );
 
         // Execute
-        let error = await assertReject(
-          handler.handle("", {}, "signed_session"),
-        );
+        await handler.handle("", {}, "signed_session");
 
         // Verify
         assertThat(
-          error,
-          eqHttpError(newUnauthorizedError("Session expired")),
-          "error",
+          await getUserSession(SPANNER_DATABASE, "session1"),
+          isArray([
+            eqMessage(
+              {
+                userSessionData: {
+                  sessionId: "session1",
+                  userId: "user1",
+                  accountId: "account1",
+                  createdTimeMs: 100,
+                  renewedTimeMs: 100,
+                },
+              },
+              GET_USER_SESSION_ROW,
+            ),
+          ]),
+          "session",
+        );
+        assertThat(
+          (await BIGTABLE.row("u#session1").get())[0].data["u"]["t"][0].value,
+          eq(100),
+          "timestamp",
         );
       },
       tearDown: async () => {
-        await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
-          await transaction.batchUpdate([
-            deleteUserSessionStatement("session1"),
-          ]);
-          await transaction.commit();
-        });
+        await cleanupAll();
       },
     },
   ],

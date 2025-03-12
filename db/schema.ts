@@ -1,12 +1,9 @@
 import { PrimitiveType, MessageDescriptor } from '@selfage/message/descriptor';
-import { Capabilities, CAPABILITIES } from '@phading/user_session_service_interface/capabilities';
 
 export interface UserSession {
   sessionId?: string,
   userId?: string,
   accountId?: string,
-  capabilitiesVersion?: number,
-  capabilities?: Capabilities,
   createdTimeMs?: number,
   renewedTimeMs?: number,
 }
@@ -26,20 +23,12 @@ export let USER_SESSION: MessageDescriptor<UserSession> = {
     index: 3,
     primitiveType: PrimitiveType.STRING,
   }, {
-    name: 'capabilitiesVersion',
+    name: 'createdTimeMs',
     index: 4,
     primitiveType: PrimitiveType.NUMBER,
   }, {
-    name: 'capabilities',
-    index: 5,
-    messageType: CAPABILITIES,
-  }, {
-    name: 'createdTimeMs',
-    index: 6,
-    primitiveType: PrimitiveType.NUMBER,
-  }, {
     name: 'renewedTimeMs',
-    index: 7,
+    index: 5,
     primitiveType: PrimitiveType.NUMBER,
   }],
 };

@@ -5,6 +5,9 @@
       "name": "sessionId",
       "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN sessionId STRING(MAX) NOT NULL"
     }, {
+      "name": "userId",
+      "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN userId STRING(MAX) NOT NULL"
+    }, {
       "name": "accountId",
       "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN accountId STRING(MAX) NOT NULL"
     }, {
@@ -14,13 +17,16 @@
       "name": "data",
       "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN data BYTES(MAX) NOT NULL"
     }],
-    "createTableDdl": "CREATE TABLE UserSession (sessionId STRING(MAX) NOT NULL, accountId STRING(MAX) NOT NULL, renewedTimeMs FLOAT64 NOT NULL, data BYTES(MAX) NOT NULL) PRIMARY KEY (sessionId ASC)",
+    "createTableDdl": "CREATE TABLE UserSession (sessionId STRING(MAX) NOT NULL, userId STRING(MAX) NOT NULL, accountId STRING(MAX) NOT NULL, renewedTimeMs FLOAT64 NOT NULL, data BYTES(MAX) NOT NULL) PRIMARY KEY (sessionId ASC)",
     "indexes": [{
       "name": "ByRenewedTimeMs",
       "createIndexDdl": "CREATE INDEX ByRenewedTimeMs ON UserSession(renewedTimeMs)"
     }, {
       "name": "ByAccountId",
       "createIndexDdl": "CREATE INDEX ByAccountId ON UserSession(accountId)"
+    }, {
+      "name": "ByUserId",
+      "createIndexDdl": "CREATE INDEX ByUserId ON UserSession(userId)"
     }]
   }]
 }

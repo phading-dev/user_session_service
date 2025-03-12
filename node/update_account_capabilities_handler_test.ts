@@ -1,14 +1,12 @@
 import "../local/env";
+import { BIGTABLE } from "../common/bigtable_client";
 import { SPANNER_DATABASE } from "../common/spanner_client";
 import {
-  GET_USER_SESSION_ROW,
   deleteUserSessionStatement,
-  getUserSession,
   insertUserSessionStatement,
 } from "../db/sql";
 import { UpdateAccountCapabilitiesHandler } from "./update_account_capabilities_handler";
-import { eqMessage } from "@selfage/message/test_matcher";
-import { assertThat, isArray } from "@selfage/test_matcher";
+import { assertThat, eq } from "@selfage/test_matcher";
 import { TEST_RUNNER } from "@selfage/test_runner";
 
 TEST_RUNNER.run({
@@ -22,47 +20,50 @@ TEST_RUNNER.run({
           await transaction.batchUpdate([
             insertUserSessionStatement({
               sessionId: "session1",
+              userId: "user1",
               accountId: "account1",
               renewedTimeMs: 1000,
-              capabilitiesVersion: 1,
-              capabilities: {
-                canConsumeShows: true,
-              },
             }),
           ]);
           await transaction.commit();
         });
-        let handler = new UpdateAccountCapabilitiesHandler(SPANNER_DATABASE);
+        await BIGTABLE.insert({
+          key: "u#session1",
+          data: {
+            u: {
+              v: {
+                value: 1,
+              },
+              cs: {
+                value: "1",
+              },
+            },
+          },
+        });
+        let handler = new UpdateAccountCapabilitiesHandler(
+          SPANNER_DATABASE,
+          BIGTABLE,
+        );
 
         // Execute
         await handler.handle("test", {
           accountId: "account1",
           capabilitiesVersion: 2,
           capabilities: {
-            canConsumeShows: false,
+            canConsume: false,
           },
         });
 
         // Verify
         assertThat(
-          await getUserSession(SPANNER_DATABASE, "session1"),
-          isArray([
-            eqMessage(
-              {
-                userSessionData: {
-                  sessionId: "session1",
-                  accountId: "account1",
-                  renewedTimeMs: 1000,
-                  capabilitiesVersion: 2,
-                  capabilities: {
-                    canConsumeShows: false,
-                  },
-                },
-              },
-              GET_USER_SESSION_ROW,
-            ),
-          ]),
-          "getUserSession",
+          (await BIGTABLE.row("u#session1").get())[0].data["u"]["v"][0].value,
+          eq(2),
+          "version",
+        );
+        assertThat(
+          (await BIGTABLE.row("u#session1").get())[0].data["u"]["cs"][0].value,
+          eq(""),
+          "canConsume",
         );
       },
       tearDown: async () => {
@@ -72,6 +73,7 @@ TEST_RUNNER.run({
           ]);
           await transaction.commit();
         });
+        await BIGTABLE.deleteRows("u");
       },
     },
     {
@@ -82,105 +84,110 @@ TEST_RUNNER.run({
           await transaction.batchUpdate([
             insertUserSessionStatement({
               sessionId: "session1",
+              userId: "user1",
               accountId: "account1",
-              renewedTimeMs: 1000,
-              capabilitiesVersion: 1,
-              capabilities: {
-                canConsumeShows: true,
-              },
+              renewedTimeMs: 100,
             }),
             insertUserSessionStatement({
               sessionId: "session2",
+              userId: "user1",
               accountId: "account1",
-              renewedTimeMs: 1000,
-              capabilitiesVersion: 2,
-              capabilities: {
-                canConsumeShows: true,
-              },
+              renewedTimeMs: 800,
             }),
             insertUserSessionStatement({
               sessionId: "session3",
+              userId: "user1",
               accountId: "account1",
               renewedTimeMs: 1000,
-              capabilitiesVersion: 1,
-              capabilities: {
-                canConsumeShows: true,
-              },
             }),
           ]);
           await transaction.commit();
         });
-        let handler = new UpdateAccountCapabilitiesHandler(SPANNER_DATABASE);
+        await BIGTABLE.insert([
+          {
+            key: "u#session1",
+            data: {
+              u: {
+                v: {
+                  value: 1,
+                },
+                cs: {
+                  value: "1",
+                },
+              },
+            },
+          },
+          {
+            key: "u#session2",
+            data: {
+              u: {
+                v: {
+                  value: 2,
+                },
+                cs: {
+                  value: "1",
+                },
+              },
+            },
+          },
+          {
+            key: "u#session3",
+            data: {
+              u: {
+                v: {
+                  value: 1,
+                },
+                cs: {
+                  value: "1",
+                },
+              },
+            },
+          },
+        ]);
+        let handler = new UpdateAccountCapabilitiesHandler(
+          SPANNER_DATABASE,
+          BIGTABLE,
+        );
 
         // Execute
         await handler.handle("test", {
           accountId: "account1",
           capabilitiesVersion: 2,
           capabilities: {
-            canConsumeShows: false,
+            canConsume: false,
           },
         });
 
         // Verify
         assertThat(
-          await getUserSession(SPANNER_DATABASE, "session1"),
-          isArray([
-            eqMessage(
-              {
-                userSessionData: {
-                  sessionId: "session1",
-                  accountId: "account1",
-                  renewedTimeMs: 1000,
-                  capabilitiesVersion: 2,
-                  capabilities: {
-                    canConsumeShows: false,
-                  },
-                },
-              },
-              GET_USER_SESSION_ROW,
-            ),
-          ]),
-          "getUserSession",
+          (await BIGTABLE.row("u#session1").get())[0].data["u"]["v"][0].value,
+          eq(2),
+          "version 1",
         );
         assertThat(
-          await getUserSession(SPANNER_DATABASE, "session2"),
-          isArray([
-            eqMessage(
-              {
-                userSessionData: {
-                  sessionId: "session2",
-                  accountId: "account1",
-                  renewedTimeMs: 1000,
-                  capabilitiesVersion: 2,
-                  capabilities: {
-                    canConsumeShows: true,
-                  },
-                },
-              },
-              GET_USER_SESSION_ROW,
-            ),
-          ]),
-          "getUserSession 2",
+          (await BIGTABLE.row("u#session1").get())[0].data["u"]["cs"][0].value,
+          eq(""),
+          "canConsume 1",
         );
         assertThat(
-          await getUserSession(SPANNER_DATABASE, "session3"),
-          isArray([
-            eqMessage(
-              {
-                userSessionData: {
-                  sessionId: "session3",
-                  accountId: "account1",
-                  renewedTimeMs: 1000,
-                  capabilitiesVersion: 2,
-                  capabilities: {
-                    canConsumeShows: false,
-                  },
-                },
-              },
-              GET_USER_SESSION_ROW,
-            ),
-          ]),
-          "getUserSession 3",
+          (await BIGTABLE.row("u#session2").get())[0].data["u"]["v"][0].value,
+          eq(2),
+          "version 2",
+        );
+        assertThat(
+          (await BIGTABLE.row("u#session2").get())[0].data["u"]["cs"][0].value,
+          eq("1"),
+          "canConsume 2",
+        );
+        assertThat(
+          (await BIGTABLE.row("u#session3").get())[0].data["u"]["v"][0].value,
+          eq(2),
+          "version 3",
+        );
+        assertThat(
+          (await BIGTABLE.row("u#session3").get())[0].data["u"]["cs"][0].value,
+          eq(""),
+          "canConsume 3",
         );
       },
       tearDown: async () => {
@@ -192,6 +199,7 @@ TEST_RUNNER.run({
           ]);
           await transaction.commit();
         });
+        await BIGTABLE.deleteRows("u");
       },
     },
     {
@@ -202,47 +210,67 @@ TEST_RUNNER.run({
           await transaction.batchUpdate([
             insertUserSessionStatement({
               sessionId: "session1",
+              userId: "user1",
               accountId: "account1",
               renewedTimeMs: 1000,
-              capabilitiesVersion: 3,
-              capabilities: {
-                canConsumeShows: true,
-              },
             }),
           ]);
           await transaction.commit();
         });
-        let handler = new UpdateAccountCapabilitiesHandler(SPANNER_DATABASE);
+        await BIGTABLE.insert({
+          key: "u#session1",
+          data: {
+            u: {
+              v: {
+                value: 1,
+              },
+              vv: { // Irrelevant column
+                value: 1,
+              },
+              cs: {
+                value: "1",
+              },
+            },
+          },
+        });
+        // Overrides previous insert.
+        await BIGTABLE.insert({
+          key: "u#session1",
+          data: {
+            u: {
+              v: {
+                value: 3,
+              },
+              cs: {
+                value: "1",
+              },
+            },
+          },
+        });
+        let handler = new UpdateAccountCapabilitiesHandler(
+          SPANNER_DATABASE,
+          BIGTABLE,
+        );
 
         // Execute
         await handler.handle("test", {
           accountId: "account1",
           capabilitiesVersion: 2,
           capabilities: {
-            canConsumeShows: false,
+            canConsume: false,
           },
         });
 
         // Verify
         assertThat(
-          await getUserSession(SPANNER_DATABASE, "session1"),
-          isArray([
-            eqMessage(
-              {
-                userSessionData: {
-                  sessionId: "session1",
-                  accountId: "account1",
-                  renewedTimeMs: 1000,
-                  capabilitiesVersion: 3,
-                  capabilities: {
-                    canConsumeShows: true,
-                  },
-                },
-              },
-              GET_USER_SESSION_ROW,
-            ),
-          ]),
-          "getUserSession",
+          (await BIGTABLE.row("u#session1").get())[0].data["u"]["v"][0].value,
+          eq(3),
+          "version",
+        );
+        assertThat(
+          (await BIGTABLE.row("u#session1").get())[0].data["u"]["cs"][0].value,
+          eq("1"),
+          "canConsume",
         );
       },
       tearDown: async () => {
@@ -252,6 +280,7 @@ TEST_RUNNER.run({
           ]);
           await transaction.commit();
         });
+        await BIGTABLE.deleteRows("u");
       },
     },
   ],
