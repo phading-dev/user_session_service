@@ -53,17 +53,17 @@ TEST_RUNNER.run({
           "resposne",
         );
         assertThat(
-          await getUserSession(SPANNER_DATABASE, "id1"),
+          await getUserSession(SPANNER_DATABASE, {
+            userSessionSessionIdEq: "id1",
+          }),
           isArray([
             eqMessage(
               {
-                userSessionData: {
-                  sessionId: "id1",
-                  userId: "user1",
-                  accountId: "account1",
-                  createdTimeMs: 1000,
-                  renewedTimeMs: 1000,
-                },
+                userSessionSessionId: "id1",
+                userSessionUserId: "user1",
+                userSessionAccountId: "account1",
+                userSessionCreatedTimeMs: 1000,
+                userSessionRenewedTimeMs: 1000,
               },
               GET_USER_SESSION_ROW,
             ),
@@ -103,9 +103,12 @@ TEST_RUNNER.run({
       },
       tearDown: async () => {
         await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
-          await transaction.batchUpdate([deleteUserSessionStatement("id1")]);
+          await transaction.batchUpdate([
+            deleteUserSessionStatement({ userSessionSessionIdEq: "id1" }),
+          ]);
           await transaction.commit();
         });
+        await BIGTABLE.deleteRows("u");
       },
     },
   ],

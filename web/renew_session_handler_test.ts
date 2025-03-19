@@ -16,7 +16,9 @@ import { TEST_RUNNER } from "@selfage/test_runner";
 
 async function cleanupAll() {
   await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
-    await transaction.batchUpdate([deleteUserSessionStatement("session1")]);
+    await transaction.batchUpdate([
+      deleteUserSessionStatement({ userSessionSessionIdEq: "session1" }),
+    ]);
     await transaction.commit();
   });
   await BIGTABLE.deleteRows(`u`);
@@ -33,9 +35,6 @@ TEST_RUNNER.run({
           await transaction.batchUpdate([
             insertUserSessionStatement({
               sessionId: "session1",
-              userId: "user1",
-              accountId: "account1",
-              createdTimeMs: 100,
               renewedTimeMs: 100,
             }),
           ]);
@@ -65,17 +64,14 @@ TEST_RUNNER.run({
 
         // Verify
         assertThat(
-          await getUserSession(SPANNER_DATABASE, "session1"),
+          await getUserSession(SPANNER_DATABASE, {
+            userSessionSessionIdEq: "session1",
+          }),
           isArray([
             eqMessage(
               {
-                userSessionData: {
-                  sessionId: "session1",
-                  userId: "user1",
-                  accountId: "account1",
-                  createdTimeMs: 100,
-                  renewedTimeMs: 1000,
-                },
+                userSessionSessionId: "session1",
+                userSessionRenewedTimeMs: 1000,
               },
               GET_USER_SESSION_ROW,
             ),
@@ -131,9 +127,6 @@ TEST_RUNNER.run({
           await transaction.batchUpdate([
             insertUserSessionStatement({
               sessionId: "session1",
-              userId: "user1",
-              accountId: "account1",
-              createdTimeMs: 100,
               renewedTimeMs: 100,
             }),
           ]);
@@ -174,9 +167,6 @@ TEST_RUNNER.run({
           await transaction.batchUpdate([
             insertUserSessionStatement({
               sessionId: "session1",
-              userId: "user1",
-              accountId: "account1",
-              createdTimeMs: 100,
               renewedTimeMs: 100,
             }),
           ]);
@@ -206,17 +196,14 @@ TEST_RUNNER.run({
 
         // Verify
         assertThat(
-          await getUserSession(SPANNER_DATABASE, "session1"),
+          await getUserSession(SPANNER_DATABASE, {
+            userSessionSessionIdEq: "session1",
+          }),
           isArray([
             eqMessage(
               {
-                userSessionData: {
-                  sessionId: "session1",
-                  userId: "user1",
-                  accountId: "account1",
-                  createdTimeMs: 100,
-                  renewedTimeMs: 100,
-                },
+                userSessionSessionId: "session1",
+                userSessionRenewedTimeMs: 100,
               },
               GET_USER_SESSION_ROW,
             ),

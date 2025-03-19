@@ -20,9 +20,7 @@ TEST_RUNNER.run({
           await transaction.batchUpdate([
             insertUserSessionStatement({
               sessionId: "session1",
-              userId: "user1",
               accountId: "account1",
-              renewedTimeMs: 1000,
             }),
           ]);
           await transaction.commit();
@@ -69,7 +67,7 @@ TEST_RUNNER.run({
       tearDown: async () => {
         await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
           await transaction.batchUpdate([
-            deleteUserSessionStatement("session1"),
+            deleteUserSessionStatement({ userSessionSessionIdEq: "session1" }),
           ]);
           await transaction.commit();
         });
@@ -84,21 +82,15 @@ TEST_RUNNER.run({
           await transaction.batchUpdate([
             insertUserSessionStatement({
               sessionId: "session1",
-              userId: "user1",
               accountId: "account1",
-              renewedTimeMs: 100,
             }),
             insertUserSessionStatement({
               sessionId: "session2",
-              userId: "user1",
               accountId: "account1",
-              renewedTimeMs: 800,
             }),
             insertUserSessionStatement({
               sessionId: "session3",
-              userId: "user1",
               accountId: "account1",
-              renewedTimeMs: 1000,
             }),
           ]);
           await transaction.commit();
@@ -193,9 +185,9 @@ TEST_RUNNER.run({
       tearDown: async () => {
         await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
           await transaction.batchUpdate([
-            deleteUserSessionStatement("session1"),
-            deleteUserSessionStatement("session2"),
-            deleteUserSessionStatement("session3"),
+            deleteUserSessionStatement({ userSessionSessionIdEq: "session1" }),
+            deleteUserSessionStatement({ userSessionSessionIdEq: "session2" }),
+            deleteUserSessionStatement({ userSessionSessionIdEq: "session3" }),
           ]);
           await transaction.commit();
         });
@@ -210,9 +202,7 @@ TEST_RUNNER.run({
           await transaction.batchUpdate([
             insertUserSessionStatement({
               sessionId: "session1",
-              userId: "user1",
               accountId: "account1",
-              renewedTimeMs: 1000,
             }),
           ]);
           await transaction.commit();
@@ -224,7 +214,8 @@ TEST_RUNNER.run({
               v: {
                 value: 1,
               },
-              vv: { // Irrelevant column
+              vv: {
+                // Irrelevant column
                 value: 1,
               },
               cs: {
@@ -276,7 +267,7 @@ TEST_RUNNER.run({
       tearDown: async () => {
         await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
           await transaction.batchUpdate([
-            deleteUserSessionStatement("session1"),
+            deleteUserSessionStatement({ userSessionSessionIdEq: "session1" }),
           ]);
           await transaction.commit();
         });

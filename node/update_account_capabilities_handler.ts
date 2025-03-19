@@ -25,7 +25,9 @@ export class UpdateAccountCapabilitiesHandler extends UpdateAccountCapabilitiesH
     loggingPrefix: string,
     body: UpdateAccountCapabilitiesRequestBody,
   ): Promise<UpdateAccountCapabilitiesResponse> {
-    let rows = await listSessionsByAccountId(this.database, body.accountId);
+    let rows = await listSessionsByAccountId(this.database, {
+      userSessionAccountIdEq: body.accountId,
+    });
     let filter = [
       {
         family: /^u$/,

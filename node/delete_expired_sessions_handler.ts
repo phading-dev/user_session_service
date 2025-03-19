@@ -30,7 +30,9 @@ export class DeleteExpiredSessionsHandler extends DeleteExpiredSessionsHandlerIn
     body: DeleteExpiredSessionsRequestBody,
   ): Promise<DeleteExpiredSessionsResponse> {
     let expiredTimeMs = this.getNow() - SESSION_LONGEVITY_MS;
-    let rows = await listExpiredSessions(this.database, expiredTimeMs);
+    let rows = await listExpiredSessions(this.database, {
+      userSessionRenewedTimeMsLt: expiredTimeMs,
+    });
     let sessionIds = rows.map((row) => row.userSessionSessionId);
     await this.bigtable.mutate(
       sessionIds.map((sessionId) => ({
@@ -40,7 +42,9 @@ export class DeleteExpiredSessionsHandler extends DeleteExpiredSessionsHandlerIn
     );
     await this.database.runTransactionAsync(async (transaction) => {
       await transaction.batchUpdate([
-        deleteExpiredSessionsStatement(expiredTimeMs),
+        deleteExpiredSessionsStatement({
+          userSessionRenewedTimeMsLt: expiredTimeMs,
+        }),
       ]);
       await transaction.commit();
     });

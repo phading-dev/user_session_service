@@ -2,7 +2,10 @@ import { BIGTABLE } from "../common/bigtable_client";
 import { SESSION_LONGEVITY_MS } from "../common/constants";
 import { SessionExtractor } from "../common/session_signer";
 import { SPANNER_DATABASE } from "../common/spanner_client";
-import { getUserSession, updateUserSessionStatement } from "../db/sql";
+import {
+  getUserSession,
+  updateUserSessionRenewedTimeStatement,
+} from "../db/sql";
 import { Table } from "@google-cloud/bigtable";
 import { Database } from "@google-cloud/spanner";
 import { RenewSessionHandlerInterface } from "@phading/user_session_service_interface/web/handler";
@@ -42,20 +45,24 @@ export class RenewSessionHandler extends RenewSessionHandlerInterface {
     let now = this.getNow();
     let valid = true;
     await this.database.runTransactionAsync(async (transaction) => {
-      let rows = await getUserSession(transaction, sessionId);
+      let rows = await getUserSession(transaction, {
+        userSessionSessionIdEq: sessionId,
+      });
       if (rows.length === 0) {
         valid = false;
         return;
       }
-      let { userSessionData } = rows[0];
+      let row = rows[0];
       let now = this.getNow();
-      if (userSessionData.renewedTimeMs < now - SESSION_LONGEVITY_MS) {
+      if (row.userSessionRenewedTimeMs < now - SESSION_LONGEVITY_MS) {
         valid = false;
         return;
       }
-      userSessionData.renewedTimeMs = this.getNow();
       await transaction.batchUpdate([
-        updateUserSessionStatement(userSessionData),
+        updateUserSessionRenewedTimeStatement({
+          userSessionSessionIdEq: sessionId,
+          setRenewedTimeMs: this.getNow(),
+        }),
       ]);
       await transaction.commit();
     });

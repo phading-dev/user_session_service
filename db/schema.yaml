@@ -1,32 +1,23 @@
-- kind: Message
-  name: UserSession
-  fields:
-    - name: sessionId
-      type: string
-      index: 1
-    - name: userId
-      type: string
-      index: 2
-    - name: accountId
-      type: string
-      index: 3
-    - name: createdTimeMs
-      type: number
-      index: 4
-    - name: renewedTimeMs
-      type: number
-      index: 5
 - kind: SpannerDatabase
   name: UserSessionDatabase
   tables:
-    - kind: MessageTable
+    - kind: Table
       name: UserSession
-      storedInColumn: data
       columns:
-        - sessionId
-        - userId
-        - accountId
-        - renewedTimeMs
+        - name: sessionId
+          type: string
+        - name: userId
+          type: string
+          nullable: true
+        - name: accountId
+          type: string
+          nullable: true
+        - name: createdTimeMs
+          type: float64
+          nullable: true
+        - name: renewedTimeMs
+          type: float64
+          nullable: true
       primaryKeys:
         - sessionId
       indexes:
@@ -42,27 +33,34 @@
       insert: InsertUserSession
       delete: DeleteUserSession
       get: GetUserSession
-      update: UpdateUserSession
   deletes:
     - name: DeleteExpiredSessions
       table: UserSession
       where:
         op: <
-        leftColumn: renewedTimeMs
-  selects:
-    - name: ListSessionsByAccountId
+        lColumn: renewedTimeMs
+  updates:
+    - name: UpdateUserSessionRenewedTime
       table: UserSession
       where:
         op: =
-        leftColumn: accountId
-      getColumns:
+        lColumn: sessionId
+      set:
+        - renewedTimeMs
+  selects:
+    - name: ListSessionsByAccountId
+      from: UserSession
+      where:
+        op: =
+        lColumn: accountId
+      get:
         - sessionId
     - name: ListExpiredSessions
-      table: UserSession
+      from: UserSession
       where:
         op: <
-        leftColumn: renewedTimeMs
-      getColumns:
+        lColumn: renewedTimeMs
+      get:
         - sessionId
   outputDdl: ./db/ddl
   outputSql: ./db/sql

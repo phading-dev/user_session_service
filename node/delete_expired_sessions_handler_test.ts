@@ -22,20 +22,14 @@ TEST_RUNNER.run({
           await transaction.batchUpdate([
             insertUserSessionStatement({
               sessionId: "session1",
-              userId: "user1",
-              accountId: "account1",
               renewedTimeMs: 1000,
             }),
             insertUserSessionStatement({
               sessionId: "session2",
-              userId: "user2",
-              accountId: "account2",
               renewedTimeMs: 2000,
             }),
             insertUserSessionStatement({
               sessionId: "session3",
-              userId: "user3",
-              accountId: "account3",
               renewedTimeMs: 4000,
             }),
           ]);
@@ -87,17 +81,29 @@ TEST_RUNNER.run({
 
         // Verify
         assertThat(
-          (await getUserSession(SPANNER_DATABASE, "session1")).length,
+          (
+            await getUserSession(SPANNER_DATABASE, {
+              userSessionSessionIdEq: "session1",
+            })
+          ).length,
           eq(0),
           "session1",
         );
         assertThat(
-          (await getUserSession(SPANNER_DATABASE, "session2")).length,
+          (
+            await getUserSession(SPANNER_DATABASE, {
+              userSessionSessionIdEq: "session2",
+            })
+          ).length,
           eq(0),
           "session2",
         );
         assertThat(
-          (await getUserSession(SPANNER_DATABASE, "session3")).length,
+          (
+            await getUserSession(SPANNER_DATABASE, {
+              userSessionSessionIdEq: "session3",
+            })
+          ).length,
           eq(1),
           "session3",
         );
@@ -132,9 +138,9 @@ TEST_RUNNER.run({
       tearDown: async () => {
         await SPANNER_DATABASE.runTransactionAsync(async (transaction) => {
           await transaction.batchUpdate([
-            deleteUserSessionStatement("session1"),
-            deleteUserSessionStatement("session2"),
-            deleteUserSessionStatement("session3"),
+            deleteUserSessionStatement({ userSessionSessionIdEq: "session1" }),
+            deleteUserSessionStatement({ userSessionSessionIdEq: "session2" }),
+            deleteUserSessionStatement({ userSessionSessionIdEq: "session3" }),
           ]);
           await transaction.commit();
         });

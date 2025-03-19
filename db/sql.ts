@@ -1,54 +1,44 @@
-import { Statement } from '@google-cloud/spanner/build/src/transaction';
 import { Spanner, Database, Transaction } from '@google-cloud/spanner';
-import { UserSession, USER_SESSION } from './schema';
-import { serializeMessage, deserializeMessage } from '@selfage/message/serializer';
-import { MessageDescriptor, PrimitiveType } from '@selfage/message/descriptor';
+import { Statement } from '@google-cloud/spanner/build/src/transaction';
+import { PrimitiveType, MessageDescriptor } from '@selfage/message/descriptor';
 
 export function insertUserSessionStatement(
-  data: UserSession,
-): Statement {
-  return insertUserSessionInternalStatement(
-    data.sessionId,
-    data.userId,
-    data.accountId,
-    data.renewedTimeMs,
-    data
-  );
-}
-
-export function insertUserSessionInternalStatement(
-  sessionId: string,
-  userId: string,
-  accountId: string,
-  renewedTimeMs: number,
-  data: UserSession,
+  args: {
+    sessionId: string,
+    userId?: string,
+    accountId?: string,
+    createdTimeMs?: number,
+    renewedTimeMs?: number,
+  }
 ): Statement {
   return {
-    sql: "INSERT UserSession (sessionId, userId, accountId, renewedTimeMs, data) VALUES (@sessionId, @userId, @accountId, @renewedTimeMs, @data)",
+    sql: "INSERT UserSession (sessionId, userId, accountId, createdTimeMs, renewedTimeMs) VALUES (@sessionId, @userId, @accountId, @createdTimeMs, @renewedTimeMs)",
     params: {
-      sessionId: sessionId,
-      userId: userId,
-      accountId: accountId,
-      renewedTimeMs: Spanner.float(renewedTimeMs),
-      data: Buffer.from(serializeMessage(data, USER_SESSION).buffer),
+      sessionId: args.sessionId,
+      userId: args.userId == null ? null : args.userId,
+      accountId: args.accountId == null ? null : args.accountId,
+      createdTimeMs: args.createdTimeMs == null ? null : Spanner.float(args.createdTimeMs),
+      renewedTimeMs: args.renewedTimeMs == null ? null : Spanner.float(args.renewedTimeMs),
     },
     types: {
       sessionId: { type: "string" },
       userId: { type: "string" },
       accountId: { type: "string" },
+      createdTimeMs: { type: "float64" },
       renewedTimeMs: { type: "float64" },
-      data: { type: "bytes" },
     }
   };
 }
 
 export function deleteUserSessionStatement(
-  userSessionSessionIdEq: string,
+  args: {
+    userSessionSessionIdEq: string,
+  }
 ): Statement {
   return {
     sql: "DELETE UserSession WHERE (UserSession.sessionId = @userSessionSessionIdEq)",
     params: {
-      userSessionSessionIdEq: userSessionSessionIdEq,
+      userSessionSessionIdEq: args.userSessionSessionIdEq,
     },
     types: {
       userSessionSessionIdEq: { type: "string" },
@@ -57,26 +47,48 @@ export function deleteUserSessionStatement(
 }
 
 export interface GetUserSessionRow {
-  userSessionData: UserSession,
+  userSessionSessionId?: string,
+  userSessionUserId?: string,
+  userSessionAccountId?: string,
+  userSessionCreatedTimeMs?: number,
+  userSessionRenewedTimeMs?: number,
 }
 
 export let GET_USER_SESSION_ROW: MessageDescriptor<GetUserSessionRow> = {
   name: 'GetUserSessionRow',
   fields: [{
-    name: 'userSessionData',
+    name: 'userSessionSessionId',
     index: 1,
-    messageType: USER_SESSION,
+    primitiveType: PrimitiveType.STRING,
+  }, {
+    name: 'userSessionUserId',
+    index: 2,
+    primitiveType: PrimitiveType.STRING,
+  }, {
+    name: 'userSessionAccountId',
+    index: 3,
+    primitiveType: PrimitiveType.STRING,
+  }, {
+    name: 'userSessionCreatedTimeMs',
+    index: 4,
+    primitiveType: PrimitiveType.NUMBER,
+  }, {
+    name: 'userSessionRenewedTimeMs',
+    index: 5,
+    primitiveType: PrimitiveType.NUMBER,
   }],
 };
 
 export async function getUserSession(
   runner: Database | Transaction,
-  userSessionSessionIdEq: string,
+  args: {
+    userSessionSessionIdEq: string,
+  }
 ): Promise<Array<GetUserSessionRow>> {
   let [rows] = await runner.run({
-    sql: "SELECT UserSession.data FROM UserSession WHERE (UserSession.sessionId = @userSessionSessionIdEq)",
+    sql: "SELECT UserSession.sessionId, UserSession.userId, UserSession.accountId, UserSession.createdTimeMs, UserSession.renewedTimeMs FROM UserSession WHERE (UserSession.sessionId = @userSessionSessionIdEq)",
     params: {
-      userSessionSessionIdEq: userSessionSessionIdEq,
+      userSessionSessionIdEq: args.userSessionSessionIdEq,
     },
     types: {
       userSessionSessionIdEq: { type: "string" },
@@ -85,57 +97,44 @@ export async function getUserSession(
   let resRows = new Array<GetUserSessionRow>();
   for (let row of rows) {
     resRows.push({
-      userSessionData: deserializeMessage(row.at(0).value, USER_SESSION),
+      userSessionSessionId: row.at(0).value == null ? undefined : row.at(0).value,
+      userSessionUserId: row.at(1).value == null ? undefined : row.at(1).value,
+      userSessionAccountId: row.at(2).value == null ? undefined : row.at(2).value,
+      userSessionCreatedTimeMs: row.at(3).value == null ? undefined : row.at(3).value.value,
+      userSessionRenewedTimeMs: row.at(4).value == null ? undefined : row.at(4).value.value,
     });
   }
   return resRows;
 }
 
-export function updateUserSessionStatement(
-  data: UserSession,
-): Statement {
-  return updateUserSessionInternalStatement(
-    data.sessionId,
-    data.userId,
-    data.accountId,
-    data.renewedTimeMs,
-    data
-  );
-}
-
-export function updateUserSessionInternalStatement(
-  userSessionSessionIdEq: string,
-  setUserId: string,
-  setAccountId: string,
-  setRenewedTimeMs: number,
-  setData: UserSession,
+export function updateUserSessionRenewedTimeStatement(
+  args: {
+    userSessionSessionIdEq: string,
+    setRenewedTimeMs?: number,
+  }
 ): Statement {
   return {
-    sql: "UPDATE UserSession SET userId = @setUserId, accountId = @setAccountId, renewedTimeMs = @setRenewedTimeMs, data = @setData WHERE (UserSession.sessionId = @userSessionSessionIdEq)",
+    sql: "UPDATE UserSession SET renewedTimeMs = @setRenewedTimeMs WHERE UserSession.sessionId = @userSessionSessionIdEq",
     params: {
-      userSessionSessionIdEq: userSessionSessionIdEq,
-      setUserId: setUserId,
-      setAccountId: setAccountId,
-      setRenewedTimeMs: Spanner.float(setRenewedTimeMs),
-      setData: Buffer.from(serializeMessage(setData, USER_SESSION).buffer),
+      userSessionSessionIdEq: args.userSessionSessionIdEq,
+      setRenewedTimeMs: args.setRenewedTimeMs == null ? null : Spanner.float(args.setRenewedTimeMs),
     },
     types: {
       userSessionSessionIdEq: { type: "string" },
-      setUserId: { type: "string" },
-      setAccountId: { type: "string" },
       setRenewedTimeMs: { type: "float64" },
-      setData: { type: "bytes" },
     }
   };
 }
 
 export function deleteExpiredSessionsStatement(
-  userSessionRenewedTimeMsLt: number,
+  args: {
+    userSessionRenewedTimeMsLt?: number,
+  }
 ): Statement {
   return {
     sql: "DELETE UserSession WHERE UserSession.renewedTimeMs < @userSessionRenewedTimeMsLt",
     params: {
-      userSessionRenewedTimeMsLt: Spanner.float(userSessionRenewedTimeMsLt),
+      userSessionRenewedTimeMsLt: args.userSessionRenewedTimeMsLt == null ? null : Spanner.float(args.userSessionRenewedTimeMsLt),
     },
     types: {
       userSessionRenewedTimeMsLt: { type: "float64" },
@@ -144,7 +143,7 @@ export function deleteExpiredSessionsStatement(
 }
 
 export interface ListSessionsByAccountIdRow {
-  userSessionSessionId: string,
+  userSessionSessionId?: string,
 }
 
 export let LIST_SESSIONS_BY_ACCOUNT_ID_ROW: MessageDescriptor<ListSessionsByAccountIdRow> = {
@@ -158,12 +157,14 @@ export let LIST_SESSIONS_BY_ACCOUNT_ID_ROW: MessageDescriptor<ListSessionsByAcco
 
 export async function listSessionsByAccountId(
   runner: Database | Transaction,
-  userSessionAccountIdEq: string,
+  args: {
+    userSessionAccountIdEq?: string,
+  }
 ): Promise<Array<ListSessionsByAccountIdRow>> {
   let [rows] = await runner.run({
     sql: "SELECT UserSession.sessionId FROM UserSession WHERE UserSession.accountId = @userSessionAccountIdEq",
     params: {
-      userSessionAccountIdEq: userSessionAccountIdEq,
+      userSessionAccountIdEq: args.userSessionAccountIdEq == null ? null : args.userSessionAccountIdEq,
     },
     types: {
       userSessionAccountIdEq: { type: "string" },
@@ -172,14 +173,14 @@ export async function listSessionsByAccountId(
   let resRows = new Array<ListSessionsByAccountIdRow>();
   for (let row of rows) {
     resRows.push({
-      userSessionSessionId: row.at(0).value,
+      userSessionSessionId: row.at(0).value == null ? undefined : row.at(0).value,
     });
   }
   return resRows;
 }
 
 export interface ListExpiredSessionsRow {
-  userSessionSessionId: string,
+  userSessionSessionId?: string,
 }
 
 export let LIST_EXPIRED_SESSIONS_ROW: MessageDescriptor<ListExpiredSessionsRow> = {
@@ -193,12 +194,14 @@ export let LIST_EXPIRED_SESSIONS_ROW: MessageDescriptor<ListExpiredSessionsRow> 
 
 export async function listExpiredSessions(
   runner: Database | Transaction,
-  userSessionRenewedTimeMsLt: number,
+  args: {
+    userSessionRenewedTimeMsLt?: number,
+  }
 ): Promise<Array<ListExpiredSessionsRow>> {
   let [rows] = await runner.run({
     sql: "SELECT UserSession.sessionId FROM UserSession WHERE UserSession.renewedTimeMs < @userSessionRenewedTimeMsLt",
     params: {
-      userSessionRenewedTimeMsLt: Spanner.float(userSessionRenewedTimeMsLt),
+      userSessionRenewedTimeMsLt: args.userSessionRenewedTimeMsLt == null ? null : Spanner.float(args.userSessionRenewedTimeMsLt),
     },
     types: {
       userSessionRenewedTimeMsLt: { type: "float64" },
@@ -207,7 +210,7 @@ export async function listExpiredSessions(
   let resRows = new Array<ListExpiredSessionsRow>();
   for (let row of rows) {
     resRows.push({
-      userSessionSessionId: row.at(0).value,
+      userSessionSessionId: row.at(0).value == null ? undefined : row.at(0).value,
     });
   }
   return resRows;

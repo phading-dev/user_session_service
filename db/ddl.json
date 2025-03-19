@@ -6,18 +6,18 @@
       "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN sessionId STRING(MAX) NOT NULL"
     }, {
       "name": "userId",
-      "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN userId STRING(MAX) NOT NULL"
+      "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN userId STRING(MAX)"
     }, {
       "name": "accountId",
-      "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN accountId STRING(MAX) NOT NULL"
+      "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN accountId STRING(MAX)"
+    }, {
+      "name": "createdTimeMs",
+      "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN createdTimeMs FLOAT64"
     }, {
       "name": "renewedTimeMs",
-      "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN renewedTimeMs FLOAT64 NOT NULL"
-    }, {
-      "name": "data",
-      "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN data BYTES(MAX) NOT NULL"
+      "addColumnDdl": "ALTER TABLE UserSession ADD COLUMN renewedTimeMs FLOAT64"
     }],
-    "createTableDdl": "CREATE TABLE UserSession (sessionId STRING(MAX) NOT NULL, userId STRING(MAX) NOT NULL, accountId STRING(MAX) NOT NULL, renewedTimeMs FLOAT64 NOT NULL, data BYTES(MAX) NOT NULL) PRIMARY KEY (sessionId ASC)",
+    "createTableDdl": "CREATE TABLE UserSession (sessionId STRING(MAX) NOT NULL, userId STRING(MAX), accountId STRING(MAX), createdTimeMs FLOAT64, renewedTimeMs FLOAT64) PRIMARY KEY (sessionId ASC)",
     "indexes": [{
       "name": "ByRenewedTimeMs",
       "createIndexDdl": "CREATE INDEX ByRenewedTimeMs ON UserSession(renewedTimeMs)"
