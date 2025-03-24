@@ -22,4 +22,8 @@ gcloud projects add-iam-policy-binding phading-dev --member=principal://iam.goog
 gcloud projects add-iam-policy-binding phading-dev --member=principal://iam.googleapis.com/projects/178489203789/locations/global/workloadIdentityPools/phading-dev.svc.id.goog/subject/ns/default/sa/user-session-service-account --role=roles/storage.objectUser --condition=None
 
 # Create Spanner database
-gcloud spanner databases create user-session-db --instance=high-read-db-instance
+gcloud spanner databases create user-session-db --instance=balanced-db-instance
+
+# Create Bigtable table
+cbt -project phading-dev -instance single-instance createtable user-session-table
+cbt -project phading-dev -instance single-instance createfamily user-session-table u:maxversions=1

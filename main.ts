@@ -24,9 +24,13 @@ async function main() {
     ),
   ]);
   SessionSigner.SECRET_KEY = sessionSecretKey;
-  let service = ServiceHandler.create(http.createServer())
+  let service = ServiceHandler.create(
+    http.createServer(),
+    ENV_VARS.externalOrigin,
+  )
     .addCorsAllowedPreflightHandler()
     .addHealthCheckHandler()
+    .addReadinessHandler()
     .addMetricsHandler();
   service
     .addHandlerRegister(USER_SESSION_NODE_SERVICE)
