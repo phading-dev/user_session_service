@@ -41,16 +41,16 @@ export class SessionFetcher {
       body.signedSession,
     );
     let regexStrs = ["u", "a", "t"];
-    if (body.capabilitiesMask.checkCanConsume) {
+    if (body.capabilitiesMask?.checkCanConsume) {
       regexStrs.push("cs");
     }
-    if (body.capabilitiesMask.checkCanPublish) {
+    if (body.capabilitiesMask?.checkCanPublish) {
       regexStrs.push("pb");
     }
-    if (body.capabilitiesMask.checkCanBeBilled) {
+    if (body.capabilitiesMask?.checkCanBeBilled) {
       regexStrs.push("bl");
     }
-    if (body.capabilitiesMask.checkCanEarn) {
+    if (body.capabilitiesMask?.checkCanEarn) {
       regexStrs.push("er");
     }
     let [rows] = await this.bigtable.getRows({
@@ -79,16 +79,16 @@ export class SessionFetcher {
       accountId: row.data["u"]["a"][0].value,
       capabilities: {},
     };
-    if (body.capabilitiesMask.checkCanConsume) {
+    if (body.capabilitiesMask?.checkCanConsume) {
       response.capabilities.canConsume = Boolean(row.data["u"]["cs"][0].value);
     }
-    if (body.capabilitiesMask.checkCanPublish) {
+    if (body.capabilitiesMask?.checkCanPublish) {
       response.capabilities.canPublish = Boolean(row.data["u"]["pb"][0].value);
     }
-    if (body.capabilitiesMask.checkCanBeBilled) {
+    if (body.capabilitiesMask?.checkCanBeBilled) {
       response.capabilities.canBeBilled = Boolean(row.data["u"]["bl"][0].value);
     }
-    if (body.capabilitiesMask.checkCanEarn) {
+    if (body.capabilitiesMask?.checkCanEarn) {
       response.capabilities.canEarn = Boolean(row.data["u"]["er"][0].value);
     }
     return response;

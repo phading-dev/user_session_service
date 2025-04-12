@@ -12,7 +12,7 @@ TEST_RUNNER.run({
   name: "SessionFetcherTest",
   cases: [
     {
-      name: "CheckCanConsume_CheckCanPublish_CheckCanBeBilled_CheckCanEarn",
+      name: "CheckCanConsume_CheckCanPublish_CheckCanBeBilled_CheckCanEarn_AuthOnly",
       execute: async () => {
         // Prepare
         await BIGTABLE.insert({
@@ -113,6 +113,16 @@ TEST_RUNNER.run({
           eq(true),
           "response.capabilities.canEarn",
         );
+
+        // Execute
+        response = await fetcher.fetch("", {
+          signedSession: "signed1",
+          capabilitiesMask: {
+            checkCanBeBilled: true,
+          },
+        });
+
+        // Verify no error thrown
       },
       tearDown: async () => {
         await BIGTABLE.deleteRows("u");
@@ -130,9 +140,6 @@ TEST_RUNNER.run({
         let error = await assertReject(
           fetcher.fetch("", {
             signedSession: "signed1",
-            capabilitiesMask: {
-              checkCanConsume: true,
-            },
           }),
         );
 
@@ -191,9 +198,6 @@ TEST_RUNNER.run({
         let error = await assertReject(
           fetcher.fetch("", {
             signedSession: "signed1",
-            capabilitiesMask: {
-              checkCanConsume: true,
-            },
           }),
         );
 
