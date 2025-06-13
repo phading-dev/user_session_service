@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: user-session-service-deployment
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: user-session-service-pod
