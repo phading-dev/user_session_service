@@ -15,7 +15,7 @@ spec:
       serviceAccountName: user-session-service-account
       containers:
       - name: user-session-service-container
-        image: gcr.io/phading-dev/user-session-service:latest
+        image: gcr.io/phading-prod/user-session-service:latest
         ports:
         - containerPort: 8080
         livenessProbe:
