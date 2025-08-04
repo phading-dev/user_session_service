@@ -51,28 +51,67 @@ spec:
     path: /metricsz
     interval: 30s
 ---
-apiVersion: cloud.google.com/v1
-kind: BackendConfig
-metadata:
-  name: user-session-service-neg-health-check
-spec:
-  healthCheck:
-    port: 8080
-    type: HTTP
-    requestPath: /healthz
----
 apiVersion: v1
 kind: Service
 metadata:
   name: user-session-service
-  annotations:
-    cloud.google.com/neg: '{"ingress": true}'
-    beta.cloud.google.com/backend-config: '{"default": "user-session-service-neg-health-check"}'
 spec:
   selector:
     app: user-session-service-pod
   ports:
     - protocol: TCP
-      port: 80
+      port: 8080
       targetPort: 8080
   type: ClusterIP
+---
+apiVersion: networking.gke.io/v1
+kind: HealthCheckPolicy
+metadata:
+  name: user-session-service-lb-health-check
+spec:
+  default:
+    config:
+      type: HTTP
+      httpHealthCheck:
+        port: 8080
+        requestPath: /healthz
+  targetRef:
+    group: ""
+    kind: Service
+    name: user-session-service
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: user-session-service-route-internal
+spec:
+  parentRefs:
+  - name: phading-gateway-internal
+    sectionName: http
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /usn
+    backendRefs:
+    - name: user-session-service
+      port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: user-session-service-route-external
+spec:
+  parentRefs:
+  - name: phading-gateway-external
+    sectionName: https
+  hostnames:
+  - www.secount.com
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /usw
+    backendRefs:
+    - name: user-session-service
+      port: 8080
